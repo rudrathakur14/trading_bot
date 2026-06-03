@@ -1,6 +1,12 @@
-2026-06-01 15:00:01 | INFO     | trading_bot.logging_config.setup_logging:56 | Logging initialised — log dir: C:\Users\Hp\trading_bot\logs
-2026-06-01 15:00:01 | INFO     | trading_bot.client.__init__:64 | BinanceClient initialised — base_url=https://testnet.binancefuture.com
-2026-06-01 15:00:01 | INFO     | trading_bot.validators.validate_all:156 | All inputs validated successfully: {'symbol': 'BTCUSDT', 'side': 'BUY', 'order_type': 'MARKET', 'quantity': 0.01, 'price': None}
-2026-06-01 15:00:01 | INFO     | trading_bot.orders.place_order:89 | Placing order: {'symbol': 'BTCUSDT', 'side': 'BUY', 'order_type': 'MARKET', 'quantity': 0.01, 'price': None, 'stop_price': None}
-2026-06-01 15:00:01 | INFO     | trading_bot.client._request:102 | API POST /fapi/v1/order | params={'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'MARKET', 'quantity': '0.01', 'timestamp': 1748779201000, 'recvWindow': 5000}
-2026-06-01 15:00:02 | INFO     | trading_bot.orders.place_order:97 | Order placed successfully — orderId=12345678 status=FILLED
+2026-06-03 21:30:33 | INFO     | trading_bot.setup_logging:68 | Logging initialised — log dir: logs
+2026-06-03 21:30:33 | INFO     | trading_bot.client.__init__:69 | BinanceClient initialised — base_url=https://testnet.binancefuture.com
+2026-06-03 21:30:33 | INFO     | trading_bot.main:165 | Command received: price
+2026-06-03 21:30:33 | INFO     | trading_bot.client._request:123 | API GET /fapi/v1/ticker/price | params={'symbol': 'BTCUSDT'}
+2026-06-03 21:30:33 | INFO     | trading_bot.main:165 | BTCUSDT current price: 66076.70
+2026-06-03 21:30:44 | INFO     | trading_bot.setup_logging:68 | Logging initialised — log dir: logs
+2026-06-03 21:30:44 | INFO     | trading_bot.client.__init__:69 | BinanceClient initialised — base_url=https://testnet.binancefuture.com
+2026-06-03 21:30:44 | INFO     | trading_bot.main:165 | Command received: order
+2026-06-03 21:30:44 | INFO     | trading_bot.validators.validate_all:213 | All inputs validated successfully: {'symbol': 'BTCUSDT', 'side': 'BUY', 'order_type': 'MARKET', 'quantity': 0.01, 'price': None}
+2026-06-03 21:30:44 | INFO     | trading_bot.orders.place_order:123 | Placing order: {'symbol': 'BTCUSDT', 'side': 'BUY', 'order_type': 'MARKET', 'quantity': 0.01, 'price': None, 'stop_price': None}
+2026-06-03 21:30:44 | INFO     | trading_bot.client._request:123 | API POST /fapi/v1/order | params={'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'MARKET', 'quantity': '0.01', 'timestamp': 1780502454963, 'recvWindow': 5000}
+2026-06-03 21:30:45 | INFO     | trading_bot.orders.place_order:131 | Order placed successfully — orderId=69824517 status=FILLED

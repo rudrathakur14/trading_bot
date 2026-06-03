@@ -19,6 +19,8 @@ load_dotenv()
 logger = logging.getLogger("trading_bot.client")
 
 # Binance Futures Testnet base URL
+# Keys must be generated from https://demo.binance.com/en/my/settings/api-management
+# Alternative legacy URL: https://testnet.binancefuture.com
 BASE_URL = "https://testnet.binancefuture.com"
 
 

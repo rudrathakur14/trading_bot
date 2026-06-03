@@ -35,16 +35,26 @@ trading_bot/
 
 ### 2. Get Testnet API Credentials
 
+Binance offers two ways to get testnet API keys:
+
+**Option A — Futures Testnet (GitHub login):**
 1. Go to [https://testnet.binancefuture.com](https://testnet.binancefuture.com)
 2. Log in with a GitHub account
 3. Click **"API Key"** in the bottom section to generate your API Key and Secret
 4. Copy both values — you'll need them next
 
+**Option B — Demo Trading (Binance account):**
+1. Go to [https://demo.binance.com/en/my/settings/api-management](https://demo.binance.com/en/my/settings/api-management)
+2. Log in with your Binance account
+3. Click **"Create API"** → **"System Generated"**
+4. Enable **Futures** permissions on the key
+5. Copy both API Key and Secret Key immediately (Secret is shown only once)
+
 ### 3. Clone and Install
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/trading_bot.git
+git clone https://github.com/rudrathakur14/trading_bot.git
 cd trading_bot
 
 # Create a virtual environment (recommended)
