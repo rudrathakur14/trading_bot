@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Bot — Binance Futures Testnet</title>
+    <meta name="description" content="A premium trading bot dashboard for Binance Futures Testnet. Place Market, Limit, and Stop-Market orders with ease.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Background grid animation -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#grad1)" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="url(#grad1)" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="url(#grad1)" stroke-width="2" stroke-linejoin="round"/>
+                        <defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6366f1"/>
+                            <stop offset="100%" style="stop-color:#a855f7"/>
+                        </linearGradient></defs>
+                    </svg>
+                </div>
+                <span class="logo-text">TradingBot</span>
+                <span class="badge">TESTNET</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="price-ticker" id="priceTicker">
+                <span class="ticker-label">BTC/USDT</span>
+                <span class="ticker-price" id="btcPrice">—</span>
+                <span class="ticker-change" id="btcChange">loading...</span>
+            </div>
+            <div class="price-ticker" id="ethTicker">
+                <span class="ticker-label">ETH/USDT</span>
+                <span class="ticker-price" id="ethPrice">—</span>
+            </div>
+            <div class="status-dot" id="statusDot" title="API Status">
+                <span class="dot"></span>
+                <span class="status-text">Checking...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Left Panel: Order Form -->
+        <section class="order-panel">
+            <div class="panel-header">
+                <h1 class="panel-title">Place Order</h1>
+                <p class="panel-subtitle">Binance Futures Testnet (USDT-M)</p>
+            </div>
+
+            <form id="orderForm" class="order-form">
+                <!-- Symbol -->
+                <div class="form-group">
+                    <label class="form-label" for="symbol">Symbol</label>
+                    <div class="input-wrapper">
+                        <select id="symbol" class="form-select" name="symbol">
+                            <option value="BTCUSDT">BTC / USDT</option>
+                            <option value="ETHUSDT">ETH / USDT</option>
+                            <option value="BNBUSDT">BNB / USDT</option>
+                            <option value="SOLUSDT">SOL / USDT</option>
+                            <option value="XRPUSDT">XRP / USDT</option>
+                            <option value="DOGEUSDT">DOGE / USDT</option>
+                            <option value="ADAUSDT">ADA / USDT</option>
+                            <option value="AVAXUSDT">AVAX / USDT</option>
+                            <option value="DOTUSDT">DOT / USDT</option>
+                            <option value="LINKUSDT">LINK / USDT</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Side Toggle -->
+                <div class="form-group">
+                    <label class="form-label">Side</label>
+                    <div class="side-toggle">
+                        <button type="button" class="side-btn side-buy active" data-side="BUY" id="btnBuy">
+                            <span class="side-icon">▲</span> BUY / LONG
+                        </button>
+                        <button type="button" class="side-btn side-sell" data-side="SELL" id="btnSell">
+                            <span class="side-icon">▼</span> SELL / SHORT
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Order Type -->
+                <div class="form-group">
+                    <label class="form-label" for="orderType">Order Type</label>
+                    <div class="type-tabs">
+                        <button type="button" class="type-tab active" data-type="MARKET">Market</button>
+                        <button type="button" class="type-tab" data-type="LIMIT">Limit</button>
+                        <button type="button" class="type-tab" data-type="STOP_MARKET">Stop Market</button>
+                    </div>
+                </div>
+
+                <!-- Price (for LIMIT) -->
+                <div class="form-group price-group" id="priceGroup" style="display:none;">
+                    <label class="form-label" for="price">Price (USDT)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="price" class="form-input" placeholder="0.00" step="any" min="0">
+                        <span class="input-suffix">USDT</span>
+                    </div>
+                </div>
+
+                <!-- Stop Price (for STOP_MARKET) -->
+                <div class="form-group stop-price-group" id="stopPriceGroup" style="display:none;">
+                    <label class="form-label" for="stopPrice">Stop Price (USDT)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="stopPrice" class="form-input" placeholder="0.00" step="any" min="0">
+                        <span class="input-suffix">USDT</span>
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div class="form-group">
+                    <label class="form-label" for="quantity">Quantity</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="quantity" class="form-input" placeholder="0.001" step="any" min="0" required>
+                        <span class="input-suffix" id="quantitySuffix">BTC</span>
+                    </div>
+                    <div class="quick-amounts">
+                        <button type="button" class="quick-btn" data-amount="0.001">0.001</button>
+                        <button type="button" class="quick-btn" data-amount="0.01">0.01</button>
+                        <button type="button" class="quick-btn" data-amount="0.05">0.05</button>
+                        <button type="button" class="quick-btn" data-amount="0.1">0.1</button>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn submit-buy" id="submitBtn">
+                    <span class="btn-text">Place BUY Order</span>
+                    <span class="btn-loader" id="btnLoader" style="display:none;">
+                        <span class="spinner"></span> Processing...
+                    </span>
+                </button>
+            </form>
+        </section>
+
+        <!-- Right Panel: Response & History -->
+        <section class="response-panel">
+            <!-- Order Response Card -->
+            <div class="response-card" id="responseCard">
+                <div class="response-header">
+                    <h2 class="response-title">Order Response</h2>
+                    <span class="response-status" id="responseStatus">Waiting...</span>
+                </div>
+                <div class="response-body" id="responseBody">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                                <rect x="9" y="3" width="6" height="4" rx="2"/>
+                                <path d="M9 14l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <p class="empty-text">Place an order to see the response here</p>
+                        <p class="empty-hint">Supports Market, Limit & Stop-Market orders</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History -->
+            <div class="history-card">
+                <div class="history-header">
+                    <h2 class="history-title">Recent Orders</h2>
+                    <button class="clear-btn" id="clearHistory" title="Clear history">Clear</button>
+                </div>
+                <div class="history-body" id="historyBody">
+                    <div class="empty-state small">
+                        <p class="empty-text">No orders yet</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

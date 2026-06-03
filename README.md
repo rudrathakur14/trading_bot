@@ -14,10 +14,16 @@ trading_bot/
 │   ├── orders.py            # Order placement logic & formatted output
 │   ├── validators.py        # Input validation layer
 │   └── logging_config.py    # Rotating file + console logging setup
+├── templates/
+│   └── index.html           # Web UI dashboard template
+├── static/
+│   ├── style.css            # Dashboard styles (dark theme)
+│   └── script.js            # Frontend logic (API calls, rendering)
 ├── logs/
 │   ├── sample_market_order.log   # Sample log — MARKET order
 │   └── sample_limit_order.log    # Sample log — LIMIT order
 ├── cli.py                   # CLI entry point (argparse)
+├── app.py                   # Web UI entry point (Flask)
 ├── .env.example             # Template for API credentials
 ├── .gitignore
 ├── requirements.txt
@@ -200,13 +206,35 @@ Sample log files from test runs are included in `logs/`:
 
 ---
 
-## 🎁 Bonus Feature: Stop-Market Orders
+## 🎁 Bonus Features
+
+### 1. Stop-Market Orders
 
 In addition to MARKET and LIMIT, this bot supports **STOP_MARKET** orders — a conditional order that triggers a market sell/buy when price hits a stop level:
 
 ```bash
 python cli.py order --symbol BTCUSDT --side SELL --type STOP_MARKET --quantity 0.01 --stop-price 60000
 ```
+
+### 2. Lightweight Web UI Dashboard
+
+A premium dark-themed web interface built with Flask:
+
+```bash
+python app.py
+# Open http://localhost:5000 in your browser
+```
+
+**Features:**
+- 🎨 Premium dark trading terminal design with glassmorphism
+- 📊 Live BTC/USDT and ETH/USDT price tickers (auto-refresh every 15s)
+- 🔄 BUY/SELL toggle with visual feedback
+- 📝 Order type tabs (Market / Limit / Stop-Market)
+- ⚡ Quick quantity buttons
+- 📋 Real-time order response display
+- 📜 Recent orders history panel
+- 🔔 Toast notifications for success/error
+- 📱 Fully responsive design
 
 ---
 
