@@ -1,0 +1,6 @@
+2026-06-01 15:05:10 | INFO     | trading_bot.logging_config.setup_logging:56 | Logging initialised — log dir: C:\Users\Hp\trading_bot\logs
+2026-06-01 15:05:10 | INFO     | trading_bot.client.__init__:64 | BinanceClient initialised — base_url=https://testnet.binancefuture.com
+2026-06-01 15:05:10 | INFO     | trading_bot.validators.validate_all:156 | All inputs validated successfully: {'symbol': 'ETHUSDT', 'side': 'SELL', 'order_type': 'LIMIT', 'quantity': 0.5, 'price': 3200.0}
+2026-06-01 15:05:10 | INFO     | trading_bot.orders.place_order:89 | Placing order: {'symbol': 'ETHUSDT', 'side': 'SELL', 'order_type': 'LIMIT', 'quantity': 0.5, 'price': 3200.0, 'stop_price': None}
+2026-06-01 15:05:10 | INFO     | trading_bot.client._request:102 | API POST /fapi/v1/order | params={'symbol': 'ETHUSDT', 'side': 'SELL', 'type': 'LIMIT', 'quantity': '0.5', 'price': '3200.0', 'timeInForce': 'GTC', 'timestamp': 1748779510000, 'recvWindow': 5000}
+2026-06-01 15:05:11 | INFO     | trading_bot.orders.place_order:97 | Order placed successfully — orderId=87654321 status=NEW

@@ -1,0 +1,6 @@
+2026-06-01 15:00:01 | INFO     | trading_bot.logging_config.setup_logging:56 | Logging initialised — log dir: C:\Users\Hp\trading_bot\logs
+2026-06-01 15:00:01 | INFO     | trading_bot.client.__init__:64 | BinanceClient initialised — base_url=https://testnet.binancefuture.com
+2026-06-01 15:00:01 | INFO     | trading_bot.validators.validate_all:156 | All inputs validated successfully: {'symbol': 'BTCUSDT', 'side': 'BUY', 'order_type': 'MARKET', 'quantity': 0.01, 'price': None}
+2026-06-01 15:00:01 | INFO     | trading_bot.orders.place_order:89 | Placing order: {'symbol': 'BTCUSDT', 'side': 'BUY', 'order_type': 'MARKET', 'quantity': 0.01, 'price': None, 'stop_price': None}
+2026-06-01 15:00:01 | INFO     | trading_bot.client._request:102 | API POST /fapi/v1/order | params={'symbol': 'BTCUSDT', 'side': 'BUY', 'type': 'MARKET', 'quantity': '0.01', 'timestamp': 1748779201000, 'recvWindow': 5000}
+2026-06-01 15:00:02 | INFO     | trading_bot.orders.place_order:97 | Order placed successfully — orderId=12345678 status=FILLED
