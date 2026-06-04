@@ -8,9 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Firebase Compat SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
 /* ════════════════════════════════════════════════════════
    CSS VARIABLES & RESET
@@ -508,14 +507,13 @@ body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-
         <div class="auth-card">
             <button class="back-btn" onclick="showScreen('authScreen')">← Back to Login</button>
             <div class="otp-header">
-                <h2 id="otpScreenTitle">🔐 Verify Your Email</h2>
-                <p id="otpScreenSubtitle">We\'ve sent a 6-digit OTP to<br><span class="otp-email" id="otpEmailDisplay">your@email.com</span></p>
+                <h2 id="otpScreenTitle">🔐 Verify Your Identity</h2>
+                <p id="otpScreenSubtitle">We've sent a 6-digit OTP to your email.<br><span class="otp-email" id="otpEmailDisplay">your@email.com</span></p>
             </div>
             <div class="otp-demo-box" id="otpDemoCodeBox">
                 <div class="otp-demo-label">Your OTP Code (Demo)</div>
                 <div class="otp-demo-code" id="otpDemoCode">------</div>
             </div>
-            <div id="recaptcha-container" style="margin: 16px 0; display: flex; justify-content: center;"></div>
             <div class="otp-inputs" id="otpInputs">
                 <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" data-idx="0">
                 <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" data-idx="1">
@@ -856,21 +854,18 @@ body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyBw_ny8f3VRFj84Lrhf7YL2yZ99yTKmANQ",
-    authDomain: "tradingbot-9a021.firebaseapp.com",
-    projectId: "tradingbot-9a021",
-    storageBucket: "tradingbot-9a021.firebasestorage.app",
-    messagingSenderId: "305710376475",
-    appId: "1:305710376475:web:a1ef22fe62830f1e2cfabe"
+const EMAILJS_CONFIG = {
+    publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
+    serviceId: "YOUR_EMAILJS_SERVICE_ID",
+    templateId: "YOUR_EMAILJS_TEMPLATE_ID"
 };
 
+const isEmailJSEnabled = EMAILJS_CONFIG.publicKey && !EMAILJS_CONFIG.publicKey.startsWith("YOUR_");
 
-const isFirebaseEnabled = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith("YOUR_");
-let auth = null;
-if (isFirebaseEnabled) {
-    firebase.initializeApp(FIREBASE_CONFIG);
-    auth = firebase.auth();
+if (isEmailJSEnabled) {
+    emailjs.init({
+        publicKey: EMAILJS_CONFIG.publicKey,
+    });
 }
 
 /* ════════════════════════════════════════════════════════
@@ -1033,60 +1028,9 @@ function handleLogin(e) {
     }
 
     const name = users[email].name;
-    const phone = users[email].phone || '+919999999999';
-
-    if (isFirebaseEnabled) {
-        try {
-            if (!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                    size: 'invisible'
-                });
-            }
-        } catch (error) {
-            console.error('Error creating RecaptchaVerifier:', error);
-            showToast('❌ Recaptcha initialization failed: ' + error.message, 'error');
-            return;
-        }
-
-        showToast('Sending SMS OTP...', 'info');
-        auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-            .then(confirmationResult => {
-                window.confirmationResult = confirmationResult;
-                pendingUser = { email, name, phone, type: 'login' };
-
-                document.getElementById('otpDemoCodeBox').style.display = 'none';
-                document.getElementById('recaptcha-container').style.display = 'flex';
-                document.getElementById('otpEmailDisplay').textContent = phone;
-                document.getElementById('otpScreenTitle').textContent = '🔐 Verify Your Phone';
-                document.getElementById('otpScreenSubtitle').innerHTML = 'We\'ve sent a 6-digit OTP to<br><span class="otp-email">' + phone + '</span>';
-
-                showScreen('otpScreen');
-                document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
-                document.querySelectorAll('.otp-digit')[0].focus();
-                startOTPTimer();
-                showToast('📱 SMS OTP sent successfully!', 'success');
-            })
-            .catch(error => {
-                console.error('Error during signInWithPhoneNumber:', error);
-                showToast('❌ Firebase Auth Error: ' + error.message, 'error');
-            });
-    } else {
-        pendingUser = { email, name, phone, type: 'login' };
-        currentOTP = generateOTP();
-
-        document.getElementById('otpDemoCodeBox').style.display = 'block';
-        document.getElementById('recaptcha-container').style.display = 'none';
-        document.getElementById('otpDemoCode').textContent = currentOTP;
-        document.getElementById('otpEmailDisplay').textContent = email;
-        document.getElementById('otpScreenTitle').textContent = '🔐 Verify Your Email';
-        document.getElementById('otpScreenSubtitle').innerHTML = 'We\'ve sent a 6-digit OTP to<br><span class="otp-email">' + email + '</span>';
-
-        showScreen('otpScreen');
-        document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
-        document.querySelectorAll('.otp-digit')[0].focus();
-        startOTPTimer();
-        showToast('📧 Sandbox OTP sent to ' + email, 'info');
-    }
+    pendingUser = { email, name, type: 'login' };
+    currentOTP = generateOTP();
+    sendEmailOTP(email, name, currentOTP);
 }
 
 function handleSignup(e) {
@@ -1105,60 +1049,51 @@ function handleSignup(e) {
         return;
     }
 
-    if (isFirebaseEnabled) {
-        try {
-            if (!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                    size: 'invisible'
-                });
-            }
-        } catch (error) {
-            console.error('Error creating RecaptchaVerifier:', error);
-            showToast('❌ Recaptcha initialization failed: ' + error.message, 'error');
-            return;
-        }
+    pendingUser = { name, email, phone, password, type: 'signup' };
+    currentOTP = generateOTP();
+    sendEmailOTP(email, name, currentOTP);
+}
 
-        showToast('Sending SMS OTP...', 'info');
-        auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-            .then(confirmationResult => {
-                window.confirmationResult = confirmationResult;
-                pendingUser = { name, email, phone, password, type: 'signup' };
-                
-                document.getElementById('otpDemoCodeBox').style.display = 'none';
-                document.getElementById('recaptcha-container').style.display = 'flex';
-                document.getElementById('otpEmailDisplay').textContent = phone;
-                document.getElementById('otpScreenTitle').textContent = '🔐 Verify Your Phone';
-                document.getElementById('otpScreenSubtitle').innerHTML = 'We\'ve sent a 6-digit OTP to<br><span class="otp-email">' + phone + '</span>';
-                
-                showScreen('otpScreen');
-                document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
-                document.querySelectorAll('.otp-digit')[0].focus();
-                startOTPTimer();
-                showToast('📱 SMS OTP sent successfully!', 'success');
-            })
-            .catch(error => {
-                console.error('Error during signInWithPhoneNumber:', error);
-                showToast('❌ Firebase Auth Error: ' + error.message, 'error');
-            });
+function sendEmailOTP(email, name, otp) {
+    document.getElementById('otpEmailDisplay').textContent = email;
+    document.getElementById('otpScreenTitle').textContent = '🔐 Verify Your Identity';
+    document.getElementById('otpScreenSubtitle').innerHTML = "We've sent a 6-digit OTP to your email.<br><span class=\"otp-email\">" + email + "</span>";
+
+    if (isEmailJSEnabled) {
+        showToast('Sending OTP to your email...', 'info');
+        emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+            to_name: name,
+            to_email: email,
+            otp_code: otp
+        })
+        .then(response => {
+            document.getElementById('otpDemoCodeBox').style.display = 'none';
+            showScreen('otpScreen');
+            document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
+            document.querySelectorAll('.otp-digit')[0].focus();
+            startOTPTimer();
+            showToast('📧 OTP sent to your email successfully!', 'success');
+        })
+        .catch(error => {
+            console.error('EmailJS Error:', error);
+            showToast('❌ EmailJS Error: ' + (error.text || error.message || 'Failed to send'), 'error');
+            // Fallback to sandbox mode
+            document.getElementById('otpDemoCodeBox').style.display = 'block';
+            document.getElementById('otpDemoCode').textContent = otp;
+            showScreen('otpScreen');
+            document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
+            document.querySelectorAll('.otp-digit')[0].focus();
+            startOTPTimer();
+            showToast('ℹ️ Fallback: Simulated OTP shown in demo box.', 'info');
+        });
     } else {
-        users[email] = { name, email, phone, password, createdAt: Date.now() };
-        localStorage.setItem('tb_users', JSON.stringify(users));
-        pendingUser = { name, email, phone, password, type: 'signup' };
-        
-        currentOTP = generateOTP();
-        
         document.getElementById('otpDemoCodeBox').style.display = 'block';
-        document.getElementById('recaptcha-container').style.display = 'none';
-        document.getElementById('otpDemoCode').textContent = currentOTP;
-        document.getElementById('otpEmailDisplay').textContent = email;
-        document.getElementById('otpScreenTitle').textContent = '🔐 Verify Your Email';
-        document.getElementById('otpScreenSubtitle').innerHTML = 'We\'ve sent a 6-digit OTP to<br><span class="otp-email">' + email + '</span>';
-        
+        document.getElementById('otpDemoCode').textContent = otp;
         showScreen('otpScreen');
         document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
         document.querySelectorAll('.otp-digit')[0].focus();
         startOTPTimer();
-        showToast('📧 Sandbox OTP sent to ' + email, 'info');
+        showToast('📧 Sandbox OTP generated!', 'info');
     }
 }
 
@@ -1183,68 +1118,39 @@ document.querySelectorAll('.otp-digit').forEach((inp, i, all) => {
 function verifyOTP() {
     const entered = Array.from(document.querySelectorAll('.otp-digit')).map(d => d.value).join('');
     if (entered.length < 6) { showToast('Please enter all 6 digits', 'error'); return; }
-    
-    if (isFirebaseEnabled && window.confirmationResult) {
-        const verifyBtn = document.getElementById('verifyOtpBtn');
-        if (verifyBtn) verifyBtn.disabled = true;
 
-        window.confirmationResult.confirm(entered)
-            .then(result => {
-                clearInterval(otpCountdown);
-                
-                if (pendingUser.type === 'signup') {
-                    const users = JSON.parse(localStorage.getItem('tb_users') || '{}');
-                    users[pendingUser.email] = {
-                        name: pendingUser.name,
-                        email: pendingUser.email,
-                        phone: pendingUser.phone,
-                        password: pendingUser.password,
-                        createdAt: Date.now()
-                    };
-                    localStorage.setItem('tb_users', JSON.stringify(users));
-                }
+    const verifyBtn = document.getElementById('verifyOtpBtn');
+    if (verifyBtn) verifyBtn.disabled = true;
 
-                const session = { email: pendingUser.email, name: pendingUser.name, loggedInAt: Date.now() };
-                localStorage.setItem('tb_session', JSON.stringify(session));
-                showToast('✅ Verified! Welcome, ' + pendingUser.name + '!', 'success');
-                setTimeout(() => {
-                    enterDashboard(session);
-                    if (verifyBtn) verifyBtn.disabled = false;
-                }, 500);
-            })
-            .catch(error => {
-                console.error('Firebase OTP verification failed:', error);
-                showToast('❌ Invalid verification code. ' + error.message, 'error');
-                document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
-                document.querySelectorAll('.otp-digit')[0].focus();
-                if (verifyBtn) verifyBtn.disabled = false;
-            });
-    } else {
-        if (entered !== currentOTP) {
-            showToast('❌ Invalid OTP. Please try again.', 'error');
-            document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
-            document.querySelectorAll('.otp-digit')[0].focus();
-            return;
-        }
-        clearInterval(otpCountdown);
-        
-        if (pendingUser.type === 'signup') {
-            const users = JSON.parse(localStorage.getItem('tb_users') || '{}');
-            users[pendingUser.email] = {
-                name: pendingUser.name,
-                email: pendingUser.email,
-                phone: pendingUser.phone,
-                password: pendingUser.password,
-                createdAt: Date.now()
-            };
-            localStorage.setItem('tb_users', JSON.stringify(users));
-        }
-
-        const session = { email: pendingUser.email, name: pendingUser.name, loggedInAt: Date.now() };
-        localStorage.setItem('tb_session', JSON.stringify(session));
-        showToast('✅ Verified! Welcome, ' + pendingUser.name + '!', 'success');
-        setTimeout(() => enterDashboard(session), 500);
+    if (entered !== currentOTP) {
+        showToast('❌ Invalid OTP. Please try again.', 'error');
+        document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
+        document.querySelectorAll('.otp-digit')[0].focus();
+        if (verifyBtn) verifyBtn.disabled = false;
+        return;
     }
+
+    clearInterval(otpCountdown);
+    
+    if (pendingUser.type === 'signup') {
+        const users = JSON.parse(localStorage.getItem('tb_users') || '{}');
+        users[pendingUser.email] = {
+            name: pendingUser.name,
+            email: pendingUser.email,
+            phone: pendingUser.phone,
+            password: pendingUser.password,
+            createdAt: Date.now()
+        };
+        localStorage.setItem('tb_users', JSON.stringify(users));
+    }
+
+    const session = { email: pendingUser.email, name: pendingUser.name, loggedInAt: Date.now() };
+    localStorage.setItem('tb_session', JSON.stringify(session));
+    showToast('✅ Verified! Welcome, ' + pendingUser.name + '!', 'success');
+    setTimeout(() => {
+        enterDashboard(session);
+        if (verifyBtn) verifyBtn.disabled = false;
+    }, 500);
 }
 
 function startOTPTimer() {
@@ -1261,34 +1167,8 @@ function startOTPTimer() {
 }
 
 function resendOTP() {
-    if (isFirebaseEnabled) {
-        if (!pendingUser.phone) {
-            showToast('❌ No phone number found for resending.', 'error');
-            return;
-        }
-        if (!window.recaptchaVerifier) {
-            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
-        }
-        auth.signInWithPhoneNumber(pendingUser.phone, window.recaptchaVerifier)
-            .then(confirmationResult => {
-                window.confirmationResult = confirmationResult;
-                document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
-                document.querySelectorAll('.otp-digit')[0].focus();
-                startOTPTimer();
-                showToast('📱 SMS OTP resent successfully!', 'success');
-            })
-            .catch(error => {
-                console.error('Error resending OTP:', error);
-                showToast('❌ Error resending SMS OTP: ' + error.message, 'error');
-            });
-    } else {
-        currentOTP = generateOTP();
-        document.getElementById('otpDemoCode').textContent = currentOTP;
-        document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
-        document.querySelectorAll('.otp-digit')[0].focus();
-        startOTPTimer();
-        showToast('📧 New simulated OTP sent!', 'info');
-    }
+    currentOTP = generateOTP();
+    sendEmailOTP(pendingUser.email, pendingUser.name, currentOTP);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1984,16 +1864,16 @@ function initAuthStatusBadge() {
     badge.style.display = 'block';
     badge.style.lineHeight = '1.4';
 
-    if (isFirebaseEnabled) {
+    if (isEmailJSEnabled) {
         badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
         badge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
         badge.style.color = 'var(--buy)';
-        badge.textContent = '🔌 Connected to Firebase (Real SMS OTP enabled)';
+        badge.textContent = '🔌 Connected to EmailJS (Real Email OTP active)';
     } else {
         badge.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
         badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
         badge.style.color = 'var(--warn)';
-        badge.textContent = 'ℹ️ Sandbox Mode (Simulated OTP). Add Firebase credentials in index.html for real SMS OTP.';
+        badge.textContent = 'ℹ️ Sandbox Mode (Simulated OTP). Add EmailJS credentials in index.html for real Email OTP.';
     }
 }
 
