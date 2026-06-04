@@ -4,766 +4,596 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trading Bot — Binance Futures Testnet</title>
-    <meta name="description" content="A premium trading bot dashboard for Binance Futures Testnet. Place Market, Limit, and Stop-Market orders.">
+    <meta name="description" content="A premium trading bot dashboard for Binance Futures Testnet.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-/* ================================================================
-   Trading Bot Dashboard — Premium Dark Theme (GitHub Pages)
-   ================================================================ */
+/* ════════════════════════════════════════════════════════
+   TRADING BOT — FULL UI WITH AUTH + DASHBOARD
+   ════════════════════════════════════════════════════════ */
 :root {
-    --bg-primary: #0a0e17;
-    --bg-secondary: #111827;
-    --bg-card: rgba(17, 24, 39, 0.8);
-    --bg-input: rgba(30, 41, 59, 0.6);
-    --bg-hover: rgba(55, 65, 81, 0.4);
-    --border-primary: rgba(99, 102, 241, 0.15);
-    --border-subtle: rgba(148, 163, 184, 0.1);
-    --border-focus: rgba(99, 102, 241, 0.5);
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --accent-primary: #6366f1;
-    --accent-glow: rgba(99, 102, 241, 0.3);
-    --buy-color: #10b981;
-    --buy-bg: rgba(16, 185, 129, 0.1);
-    --buy-glow: rgba(16, 185, 129, 0.3);
-    --sell-color: #ef4444;
-    --sell-bg: rgba(239, 68, 68, 0.1);
-    --sell-glow: rgba(239, 68, 68, 0.3);
-    --success-color: #10b981;
-    --error-color: #ef4444;
-    --warning-color: #f59e0b;
+    --bg-primary: #0a0e17; --bg-secondary: #111827; --bg-card: rgba(17,24,39,0.8);
+    --bg-input: rgba(30,41,59,0.6); --bg-hover: rgba(55,65,81,0.4);
+    --border-primary: rgba(99,102,241,0.15); --border-subtle: rgba(148,163,184,0.1);
+    --border-focus: rgba(99,102,241,0.5);
+    --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #64748b;
+    --accent: #6366f1; --accent-glow: rgba(99,102,241,0.3);
+    --buy: #10b981; --buy-bg: rgba(16,185,129,0.1); --buy-glow: rgba(16,185,129,0.3);
+    --sell: #ef4444; --sell-bg: rgba(239,68,68,0.1); --sell-glow: rgba(239,68,68,0.3);
+    --warn: #f59e0b;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.4); --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);min-height:100vh;overflow-x:hidden}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; -webkit-font-smoothing: antialiased; }
-body {
-    font-family: var(--font-sans);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    min-height: 100vh;
-    overflow-x: hidden;
-    position: relative;
-}
+/* ── Backgrounds ───────────────────────────────────── */
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(99,102,241,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.03) 1px,transparent 1px);background-size:60px 60px}
+.bg-glow{position:fixed;border-radius:50%;filter:blur(120px);opacity:.15;z-index:0;pointer-events:none;animation:gPulse 8s ease-in-out infinite alternate}
+.bg-glow-1{width:600px;height:600px;background:var(--accent);top:-200px;left:-100px}
+.bg-glow-2{width:500px;height:500px;background:#a855f7;bottom:-200px;right:-100px;animation-delay:4s}
+@keyframes gPulse{0%{opacity:.1;transform:scale(1)}100%{opacity:.2;transform:scale(1.1)}}
 
-/* Background */
-.bg-grid {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background-image:
-        linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-}
-.bg-glow {
-    position: fixed; border-radius: 50%; filter: blur(120px); opacity: 0.15;
-    z-index: 0; pointer-events: none; animation: glowPulse 8s ease-in-out infinite alternate;
-}
-.bg-glow-1 { width: 600px; height: 600px; background: var(--accent-primary); top: -200px; left: -100px; }
-.bg-glow-2 { width: 500px; height: 500px; background: #a855f7; bottom: -200px; right: -100px; animation-delay: 4s; }
-@keyframes glowPulse { 0% { opacity: 0.1; transform: scale(1); } 100% { opacity: 0.2; transform: scale(1.1); } }
+/* ── Screen Management ─────────────────────────────── */
+.screen{display:none;position:relative;z-index:1;min-height:100vh}
+.screen.active{display:block}
 
-/* Header */
-.header {
-    position: sticky; top: 0; z-index: 100; display: flex; align-items: center;
-    justify-content: space-between; padding: 0 32px; height: 64px;
-    background: rgba(10,14,23,0.85); backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border-subtle);
-}
-.header-left, .header-right { display: flex; align-items: center; gap: 16px; }
-.logo { display: flex; align-items: center; gap: 10px; }
-.logo-icon {
-    display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
-    border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.15));
-    border: 1px solid rgba(99,102,241,0.2);
-}
-.logo-text {
-    font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #6366f1, #a855f7);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.badge {
-    font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; padding: 3px 8px;
-    border-radius: 6px; background: rgba(245,158,11,0.15); color: #f59e0b;
-    border: 1px solid rgba(245,158,11,0.2); text-transform: uppercase;
-}
-.settings-btn {
-    display: flex; align-items: center; gap: 6px; padding: 8px 14px;
-    background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
-    color: var(--text-secondary); font-family: var(--font-sans); font-size: 0.8rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s ease;
-}
-.settings-btn:hover { border-color: var(--accent-primary); color: var(--text-primary); }
-.settings-btn.connected { border-color: var(--buy-color); color: var(--buy-color); }
+/* ════════════════════════════════════════════════════════
+   AUTH SCREENS (Login / Signup / OTP)
+   ════════════════════════════════════════════════════════ */
+.auth-wrapper{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.auth-card{width:100%;max-width:440px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r-xl);padding:40px;backdrop-filter:blur(20px);box-shadow:var(--shadow-lg);animation:cardIn .5s ease}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 
-/* Price Ticker */
-.price-ticker {
-    display: flex; align-items: center; gap: 10px; padding: 8px 16px;
-    background: var(--bg-input); border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm); transition: all 0.2s ease;
-}
-.ticker-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-.ticker-price { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
-.ticker-change { font-size: 0.7rem; color: var(--text-muted); }
-.ticker-change.up { color: var(--buy-color); }
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px}
+.auth-logo-icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(168,85,247,.2));border:1px solid rgba(99,102,241,.25)}
+.auth-logo-text{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-subtitle{text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:32px}
 
-/* Status Dot */
-.status-dot {
-    display: flex; align-items: center; gap: 8px; padding: 8px 14px;
-    border-radius: var(--radius-sm); background: var(--bg-input); border: 1px solid var(--border-subtle);
-}
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); animation: dotPulse 2s ease-in-out infinite; }
-.dot.online { background: var(--buy-color); box-shadow: 0 0 8px var(--buy-glow); }
-.dot.offline { background: var(--sell-color); box-shadow: 0 0 8px var(--sell-glow); }
-.status-text { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
-@keyframes dotPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+/* Auth Tabs */
+.auth-tabs{display:flex;background:var(--bg-input);border-radius:var(--r-sm);padding:4px;gap:4px;margin-bottom:28px;border:1px solid var(--border-subtle)}
+.auth-tab{flex:1;padding:11px;font-family:var(--font-sans);font-size:.85rem;font-weight:700;color:var(--text-muted);background:transparent;border:none;border-radius:6px;cursor:pointer;transition:all .2s ease;text-transform:uppercase;letter-spacing:.04em}
+.auth-tab:hover{color:var(--text-secondary)}
+.auth-tab.active{color:var(--text-primary);background:rgba(99,102,241,.15);box-shadow:0 1px 4px rgba(0,0,0,.2)}
 
-/* Main Content */
-.main-content {
-    position: relative; z-index: 1; display: grid; grid-template-columns: 420px 1fr;
-    gap: 24px; padding: 24px 32px; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 64px);
-}
+/* Auth Forms */
+.auth-form{display:none}.auth-form.active{display:block}
+.form-group{margin-bottom:20px}
+.form-label{display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.form-input{width:100%;padding:13px 16px;font-family:var(--font-sans);font-size:.95rem;font-weight:500;color:var(--text-primary);background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--r-sm);outline:none;transition:all .2s ease}
+.form-input:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--accent-glow)}
+.form-input::placeholder{color:var(--text-muted)}
 
-/* Order Panel */
-.order-panel {
-    background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
-    padding: 28px; backdrop-filter: blur(20px); box-shadow: var(--shadow-md);
-    height: fit-content; position: sticky; top: 88px;
-}
-.panel-header { margin-bottom: 24px; }
-.panel-title { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
-.panel-subtitle { font-size: 0.8rem; color: var(--text-muted); }
+.auth-btn{width:100%;padding:14px;font-family:var(--font-sans);font-size:.95rem;font-weight:700;color:white;background:linear-gradient(135deg,#6366f1,#a855f7);border:none;border-radius:var(--r-md);cursor:pointer;transition:all .3s ease;text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 30px var(--accent-glow)}
+.auth-btn:active{transform:translateY(0)}
+.auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
 
-/* Form */
-.form-group { margin-bottom: 20px; }
-.form-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
-.input-wrapper { position: relative; }
-.form-input, .form-select {
-    width: 100%; padding: 12px 16px; font-family: var(--font-mono); font-size: 0.95rem; font-weight: 500;
-    color: var(--text-primary); background: var(--bg-input); border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-sm); outline: none; transition: all 0.2s ease; appearance: none; -webkit-appearance: none;
-}
-.form-select {
-    cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px;
-}
-.form-input:focus, .form-select:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-glow); }
-.form-input::placeholder { color: var(--text-muted); }
-.input-suffix { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; font-weight: 600; color: var(--text-muted); pointer-events: none; }
+.auth-divider{display:flex;align-items:center;gap:16px;margin:24px 0;color:var(--text-muted);font-size:.78rem}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border-subtle)}
 
-/* Side Toggle */
-.side-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.side-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px;
-    font-family: var(--font-sans); font-size: 0.85rem; font-weight: 700; border: 2px solid transparent;
-    border-radius: var(--radius-sm); cursor: pointer; transition: all 0.25s ease; text-transform: uppercase; letter-spacing: 0.04em;
-}
-.side-buy { background: var(--bg-input); color: var(--text-muted); }
-.side-buy.active { background: var(--buy-bg); color: var(--buy-color); border-color: var(--buy-color); box-shadow: 0 0 20px var(--buy-glow), inset 0 0 20px rgba(16,185,129,0.05); }
-.side-sell { background: var(--bg-input); color: var(--text-muted); }
-.side-sell.active { background: var(--sell-bg); color: var(--sell-color); border-color: var(--sell-color); box-shadow: 0 0 20px var(--sell-glow), inset 0 0 20px rgba(239,68,68,0.05); }
-.side-icon { font-size: 0.7rem; }
+.auth-footer{text-align:center;margin-top:24px;font-size:.82rem;color:var(--text-muted)}
+.auth-footer a{color:var(--accent);text-decoration:none;font-weight:600;cursor:pointer}
+.auth-footer a:hover{text-decoration:underline}
 
-/* Type Tabs */
-.type-tabs { display: flex; background: var(--bg-input); border-radius: var(--radius-sm); padding: 4px; gap: 4px; border: 1px solid var(--border-subtle); }
-.type-tab {
-    flex: 1; padding: 10px 12px; font-family: var(--font-sans); font-size: 0.8rem; font-weight: 600;
-    color: var(--text-muted); background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;
-}
-.type-tab:hover { color: var(--text-secondary); background: var(--bg-hover); }
-.type-tab.active { color: var(--text-primary); background: rgba(99,102,241,0.15); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+/* Password Toggle */
+.input-wrapper{position:relative}
+.pwd-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;padding:4px}
+.pwd-toggle:hover{color:var(--text-primary)}
 
-/* Quick Amounts */
-.quick-amounts { display: flex; gap: 6px; margin-top: 8px; }
-.quick-btn {
-    flex: 1; padding: 6px; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 500;
-    color: var(--text-muted); background: var(--bg-input); border: 1px solid var(--border-subtle);
-    border-radius: 6px; cursor: pointer; transition: all 0.15s ease;
-}
-.quick-btn:hover { color: var(--accent-primary); border-color: var(--accent-primary); background: rgba(99,102,241,0.08); }
+/* ── OTP Screen ────────────────────────────────────── */
+.otp-header{text-align:center;margin-bottom:28px}
+.otp-header h2{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.otp-header p{font-size:.85rem;color:var(--text-secondary);line-height:1.5}
+.otp-email{color:var(--accent);font-weight:600}
 
-/* Submit Button */
-.submit-btn {
-    width: 100%; padding: 16px; font-family: var(--font-sans); font-size: 1rem; font-weight: 700;
-    border: none; border-radius: var(--radius-md); cursor: pointer; transition: all 0.3s ease;
-    text-transform: uppercase; letter-spacing: 0.06em; position: relative; overflow: hidden;
-}
-.submit-buy { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 20px var(--buy-glow); }
-.submit-buy:hover { transform: translateY(-1px); box-shadow: 0 6px 30px var(--buy-glow); }
-.submit-sell { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 20px var(--sell-glow); }
-.submit-sell:hover { transform: translateY(-1px); box-shadow: 0 6px 30px var(--sell-glow); }
-.submit-btn:active { transform: translateY(0); }
-.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
-.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.otp-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:28px}
+.otp-digit{width:52px;height:60px;text-align:center;font-family:var(--font-mono);font-size:1.5rem;font-weight:700;color:var(--text-primary);background:var(--bg-input);border:2px solid var(--border-subtle);border-radius:var(--r-md);outline:none;transition:all .2s ease}
+.otp-digit:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.otp-digit.filled{border-color:var(--buy);background:rgba(16,185,129,.05)}
 
-/* Response Panel */
-.response-panel { display: flex; flex-direction: column; gap: 24px; }
-.response-card, .history-card {
-    background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
-    backdrop-filter: blur(20px); box-shadow: var(--shadow-md); overflow: hidden;
-}
-.response-header, .history-header {
-    display: flex; align-items: center; justify-content: space-between; padding: 20px 24px;
-    border-bottom: 1px solid var(--border-subtle);
-}
-.response-title, .history-title { font-size: 1.05rem; font-weight: 700; }
-.response-status { font-size: 0.75rem; font-weight: 600; padding: 4px 12px; border-radius: 20px; background: var(--bg-input); color: var(--text-muted); }
-.response-status.success { background: var(--buy-bg); color: var(--buy-color); }
-.response-status.error { background: var(--sell-bg); color: var(--sell-color); }
-.response-body { padding: 24px; min-height: 200px; }
+.otp-demo-box{background:rgba(99,102,241,.08);border:1px dashed rgba(99,102,241,.3);border-radius:var(--r-md);padding:16px;text-align:center;margin-bottom:24px}
+.otp-demo-label{font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.otp-demo-code{font-family:var(--font-mono);font-size:2rem;font-weight:800;letter-spacing:.4em;color:var(--accent)}
 
-/* Order Details Grid */
-.order-details { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.detail-item { padding: 14px 16px; background: var(--bg-input); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); transition: all 0.2s ease; }
-.detail-item:hover { border-color: var(--border-primary); }
-.detail-item.full-width { grid-column: 1 / -1; }
-.detail-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-.detail-value { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; color: var(--text-primary); word-break: break-all; }
-.detail-value.buy { color: var(--buy-color); }
-.detail-value.sell { color: var(--sell-color); }
-.detail-value.filled { color: var(--success-color); }
-.detail-value.new-order { color: var(--warning-color); }
+.otp-resend{text-align:center;margin-top:16px;font-size:.82rem;color:var(--text-muted)}
+.otp-resend a{color:var(--accent);text-decoration:none;font-weight:600;cursor:pointer}
+.otp-resend a:hover{text-decoration:underline}
 
-/* Empty State */
-.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; text-align: center; }
-.empty-state.small { padding: 32px 24px; }
-.empty-icon { color: var(--text-muted); opacity: 0.3; margin-bottom: 16px; }
-.empty-text { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 4px; }
-.empty-hint { font-size: 0.78rem; color: var(--text-muted); opacity: 0.6; }
+.otp-timer{font-family:var(--font-mono);color:var(--warn);font-weight:600}
+.back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text-muted);font-family:var(--font-sans);font-size:.82rem;font-weight:600;cursor:pointer;margin-bottom:20px;padding:0;transition:color .2s}
+.back-btn:hover{color:var(--text-primary)}
 
-/* History */
-.history-body { max-height: 400px; overflow-y: auto; }
-.history-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border-subtle); transition: background 0.15s ease; }
-.history-item:hover { background: var(--bg-hover); }
-.history-item:last-child { border-bottom: none; }
-.history-left { display: flex; align-items: center; gap: 12px; }
-.history-side { font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
-.history-side.buy { background: var(--buy-bg); color: var(--buy-color); }
-.history-side.sell { background: var(--sell-bg); color: var(--sell-color); }
-.history-info { display: flex; flex-direction: column; }
-.history-symbol { font-size: 0.85rem; font-weight: 600; }
-.history-type { font-size: 0.72rem; color: var(--text-muted); }
-.history-right { display: flex; flex-direction: column; align-items: flex-end; }
-.history-qty { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500; }
-.history-status { font-size: 0.7rem; font-weight: 600; }
-.history-status.filled { color: var(--success-color); }
-.history-status.new-order { color: var(--warning-color); }
-.history-status.failed { color: var(--error-color); }
-.clear-btn { font-family: var(--font-sans); font-size: 0.75rem; font-weight: 600; color: var(--text-muted); background: transparent; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 12px; cursor: pointer; transition: all 0.15s ease; }
-.clear-btn:hover { color: var(--sell-color); border-color: var(--sell-color); }
+/* ════════════════════════════════════════════════════════
+   DASHBOARD SCREEN
+   ════════════════════════════════════════════════════════ */
+.header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:64px;background:rgba(10,14,23,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-subtle)}
+.header-left,.header-right{display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--r-sm);background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(168,85,247,.15));border:1px solid rgba(99,102,241,.2)}
+.logo-text{font-size:1.25rem;font-weight:700;letter-spacing:-.02em;background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.badge{font-size:.625rem;font-weight:700;letter-spacing:.08em;padding:3px 8px;border-radius:6px;background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.2);text-transform:uppercase}
 
-/* Modal */
-.modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-    z-index: 200; display: none; align-items: center; justify-content: center;
-}
-.modal-overlay.active { display: flex; }
-.modal {
-    background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
-    padding: 32px; width: 100%; max-width: 480px; box-shadow: var(--shadow-lg);
-    animation: modalIn 0.3s ease;
-}
-@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-.modal h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
-.modal p { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
-.modal .form-group { margin-bottom: 16px; }
-.modal-actions { display: flex; gap: 12px; margin-top: 24px; }
-.modal-btn {
-    flex: 1; padding: 12px; font-family: var(--font-sans); font-size: 0.85rem; font-weight: 700;
-    border: none; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s ease;
-}
-.modal-btn.primary { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; }
-.modal-btn.primary:hover { box-shadow: 0 4px 20px var(--accent-glow); }
-.modal-btn.secondary { background: var(--bg-input); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
-.modal-btn.secondary:hover { border-color: var(--text-muted); }
-.key-warning { font-size: 0.72rem; color: var(--warning-color); margin-top: 12px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.4; }
+.user-pill{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:24px;font-size:.8rem;font-weight:500;color:var(--text-secondary)}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;color:white}
+.logout-btn{background:none;border:1px solid var(--border-subtle);border-radius:var(--r-sm);padding:8px 14px;color:var(--text-muted);font-family:var(--font-sans);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+.logout-btn:hover{border-color:var(--sell);color:var(--sell)}
+
+.price-ticker{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--r-sm)}
+.ticker-label{font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em}
+.ticker-price{font-family:var(--font-mono);font-size:.95rem;font-weight:600;color:var(--text-primary)}
+.ticker-change{font-size:.7rem;color:var(--text-muted)}
+.ticker-change.up{color:var(--buy)}
+
+.status-dot{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--r-sm);background:var(--bg-input);border:1px solid var(--border-subtle)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--text-muted);animation:dotP 2s ease-in-out infinite}
+.dot.online{background:var(--buy);box-shadow:0 0 8px var(--buy-glow)}
+.status-text{font-size:.75rem;font-weight:500;color:var(--text-muted)}
+@keyframes dotP{0%,100%{opacity:1}50%{opacity:.5}}
+
+.main-content{position:relative;z-index:1;display:grid;grid-template-columns:420px 1fr;gap:24px;padding:24px 32px;max-width:1400px;margin:0 auto;min-height:calc(100vh - 64px)}
+.order-panel{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r-lg);padding:28px;backdrop-filter:blur(20px);box-shadow:var(--shadow-md);height:fit-content;position:sticky;top:88px}
+.panel-header{margin-bottom:24px}
+.panel-title{font-size:1.35rem;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.panel-subtitle{font-size:.8rem;color:var(--text-muted)}
+
+.form-select{width:100%;padding:12px 16px;font-family:var(--font-mono);font-size:.95rem;font-weight:500;color:var(--text-primary);background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--r-sm);outline:none;transition:all .2s;appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.form-select:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px var(--accent-glow)}
+.input-suffix{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:.75rem;font-weight:600;color:var(--text-muted);pointer-events:none}
+
+.side-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.side-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;font-family:var(--font-sans);font-size:.85rem;font-weight:700;border:2px solid transparent;border-radius:var(--r-sm);cursor:pointer;transition:all .25s;text-transform:uppercase;letter-spacing:.04em}
+.side-buy{background:var(--bg-input);color:var(--text-muted)}
+.side-buy.active{background:var(--buy-bg);color:var(--buy);border-color:var(--buy);box-shadow:0 0 20px var(--buy-glow),inset 0 0 20px rgba(16,185,129,.05)}
+.side-sell{background:var(--bg-input);color:var(--text-muted)}
+.side-sell.active{background:var(--sell-bg);color:var(--sell);border-color:var(--sell);box-shadow:0 0 20px var(--sell-glow),inset 0 0 20px rgba(239,68,68,.05)}
+.side-icon{font-size:.7rem}
+
+.type-tabs{display:flex;background:var(--bg-input);border-radius:var(--r-sm);padding:4px;gap:4px;border:1px solid var(--border-subtle)}
+.type-tab{flex:1;padding:10px 12px;font-family:var(--font-sans);font-size:.8rem;font-weight:600;color:var(--text-muted);background:transparent;border:none;border-radius:6px;cursor:pointer;transition:all .2s}
+.type-tab:hover{color:var(--text-secondary);background:var(--bg-hover)}
+.type-tab.active{color:var(--text-primary);background:rgba(99,102,241,.15)}
+
+.quick-amounts{display:flex;gap:6px;margin-top:8px}
+.quick-btn{flex:1;padding:6px;font-family:var(--font-mono);font-size:.72rem;font-weight:500;color:var(--text-muted);background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:6px;cursor:pointer;transition:all .15s}
+.quick-btn:hover{color:var(--accent);border-color:var(--accent);background:rgba(99,102,241,.08)}
+
+.submit-btn{width:100%;padding:16px;font-family:var(--font-sans);font-size:1rem;font-weight:700;border:none;border-radius:var(--r-md);cursor:pointer;transition:all .3s;text-transform:uppercase;letter-spacing:.06em}
+.submit-buy{background:linear-gradient(135deg,#10b981,#059669);color:white;box-shadow:0 4px 20px var(--buy-glow)}
+.submit-buy:hover{transform:translateY(-1px);box-shadow:0 6px 30px var(--buy-glow)}
+.submit-sell{background:linear-gradient(135deg,#ef4444,#dc2626);color:white;box-shadow:0 4px 20px var(--sell-glow)}
+.submit-sell:hover{transform:translateY(-1px);box-shadow:0 6px 30px var(--sell-glow)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.response-panel{display:flex;flex-direction:column;gap:24px}
+.response-card,.history-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r-lg);backdrop-filter:blur(20px);box-shadow:var(--shadow-md);overflow:hidden}
+.response-header,.history-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border-subtle)}
+.response-title,.history-title{font-size:1.05rem;font-weight:700}
+.response-status{font-size:.75rem;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--bg-input);color:var(--text-muted)}
+.response-status.success{background:var(--buy-bg);color:var(--buy)}
+.response-status.error{background:var(--sell-bg);color:var(--sell)}
+.response-body{padding:24px;min-height:200px}
+.order-details{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.detail-item{padding:14px 16px;background:var(--bg-input);border-radius:var(--r-sm);border:1px solid var(--border-subtle);transition:all .2s}
+.detail-item:hover{border-color:var(--border-primary)}
+.detail-item.full-width{grid-column:1/-1}
+.detail-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.detail-value{font-family:var(--font-mono);font-size:.95rem;font-weight:600;color:var(--text-primary);word-break:break-all}
+.detail-value.buy{color:var(--buy)}.detail-value.sell{color:var(--sell)}
+.detail-value.filled{color:var(--buy)}.detail-value.new-order{color:var(--warn)}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center}
+.empty-state.small{padding:32px 24px}
+.empty-icon{color:var(--text-muted);opacity:.3;margin-bottom:16px}
+.empty-text{font-size:.9rem;color:var(--text-muted);margin-bottom:4px}
+.empty-hint{font-size:.78rem;color:var(--text-muted);opacity:.6}
+
+.history-body{max-height:400px;overflow-y:auto}
+.history-item{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border-subtle);transition:background .15s}
+.history-item:hover{background:var(--bg-hover)}
+.history-item:last-child{border-bottom:none}
+.history-left{display:flex;align-items:center;gap:12px}
+.history-side{font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+.history-side.buy{background:var(--buy-bg);color:var(--buy)}
+.history-side.sell{background:var(--sell-bg);color:var(--sell)}
+.history-info{display:flex;flex-direction:column}
+.history-symbol{font-size:.85rem;font-weight:600}
+.history-type{font-size:.72rem;color:var(--text-muted)}
+.history-right{display:flex;flex-direction:column;align-items:flex-end}
+.history-qty{font-family:var(--font-mono);font-size:.85rem;font-weight:500}
+.history-status{font-size:.7rem;font-weight:600}
+.history-status.filled{color:var(--buy)}.history-status.new-order{color:var(--warn)}.history-status.failed{color:var(--sell)}
+.clear-btn{font-family:var(--font-sans);font-size:.75rem;font-weight:600;color:var(--text-muted);background:transparent;border:1px solid var(--border-subtle);border-radius:6px;padding:4px 12px;cursor:pointer;transition:all .15s}
+.clear-btn:hover{color:var(--sell);border-color:var(--sell)}
+
+.response-card.flash-success{border-color:var(--buy);box-shadow:0 0 30px var(--buy-glow);transition:all .3s}
+.response-card.flash-error{border-color:var(--sell);box-shadow:0 0 30px var(--sell-glow);transition:all .3s}
 
 /* Toast */
-.toast-container { position: fixed; top: 80px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
-.toast { padding: 14px 20px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-lg); animation: toastIn 0.3s ease forwards; max-width: 380px; }
-.toast.success { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); color: var(--buy-color); }
-.toast.error { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: var(--sell-color); }
-.toast.info { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.3); color: var(--accent-primary); }
-.toast.exit { animation: toastOut 0.3s ease forwards; }
-@keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
-
-/* Flash */
-.response-card.flash-success { border-color: var(--buy-color); box-shadow: 0 0 30px var(--buy-glow); transition: all 0.3s ease; }
-.response-card.flash-error { border-color: var(--sell-color); box-shadow: 0 0 30px var(--sell-glow); transition: all 0.3s ease; }
+.toast-container{position:fixed;top:80px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:14px 20px;border-radius:var(--r-sm);font-size:.85rem;font-weight:500;backdrop-filter:blur(20px);border:1px solid var(--border-subtle);box-shadow:var(--shadow-lg);animation:tIn .3s ease forwards;max-width:380px}
+.toast.success{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.3);color:var(--buy)}
+.toast.error{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:var(--sell)}
+.toast.info{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3);color:var(--accent)}
+.toast.exit{animation:tOut .3s ease forwards}
+@keyframes tIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes tOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(40px)}}
 
 /* Responsive */
-@media (max-width: 1024px) {
-    .main-content { grid-template-columns: 1fr; padding: 16px; }
-    .order-panel { position: static; }
-    .header { padding: 0 16px; flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 12px; }
-    .header-right { flex-wrap: wrap; gap: 8px; }
-}
-@media (max-width: 600px) {
-    .order-details { grid-template-columns: 1fr; }
-    .price-ticker { display: none; }
-}
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 3px; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.fade-in { animation: fadeIn 0.35s ease forwards; }
-@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-.slide-up { animation: slideUp 0.4s ease forwards; }
+@media(max-width:1024px){.main-content{grid-template-columns:1fr;padding:16px}.order-panel{position:static}.header{padding:12px 16px;flex-wrap:wrap;height:auto;gap:12px}.header-right{flex-wrap:wrap;gap:8px}}
+@media(max-width:600px){.order-details{grid-template-columns:1fr}.price-ticker{display:none}.otp-digit{width:44px;height:52px;font-size:1.2rem}}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bg-hover);border-radius:3px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .35s ease forwards}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.slide-up{animation:slideUp .4s ease forwards}
     </style>
 </head>
 <body>
-    <div class="bg-grid"></div>
-    <div class="bg-glow bg-glow-1"></div>
-    <div class="bg-glow bg-glow-2"></div>
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
 
-    <!-- Header -->
-    <header class="header">
-        <div class="header-left">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#g1)" stroke-width="2" stroke-linejoin="round"/>
-                        <path d="M2 17L12 22L22 17" stroke="url(#g1)" stroke-width="2" stroke-linejoin="round"/>
-                        <path d="M2 12L12 17L22 12" stroke="url(#g1)" stroke-width="2" stroke-linejoin="round"/>
-                        <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#a855f7"/></linearGradient></defs>
-                    </svg>
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 1: AUTH (Login / Signup)
+     ═══════════════════════════════════════════════════ -->
+<div class="screen active" id="authScreen">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <div class="auth-logo-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#ag)" stroke-width="2" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="url(#ag)" stroke-width="2" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="url(#ag)" stroke-width="2" stroke-linejoin="round"/><defs><linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#a855f7"/></linearGradient></defs></svg>
                 </div>
-                <span class="logo-text">TradingBot</span>
-                <span class="badge">TESTNET</span>
+                <span class="auth-logo-text">TradingBot</span>
             </div>
-        </div>
-        <div class="header-right">
-            <div class="price-ticker">
-                <span class="ticker-label">BTC/USDT</span>
-                <span class="ticker-price" id="btcPrice">—</span>
-                <span class="ticker-change" id="btcStatus">loading...</span>
-            </div>
-            <div class="price-ticker">
-                <span class="ticker-label">ETH/USDT</span>
-                <span class="ticker-price" id="ethPrice">—</span>
-            </div>
-            <div class="status-dot" id="statusDot">
-                <span class="dot" id="dot"></span>
-                <span class="status-text" id="statusText">Checking...</span>
-            </div>
-            <button class="settings-btn" id="settingsBtn" onclick="openModal()">
-                🔑 API Keys
-            </button>
-        </div>
-    </header>
+            <p class="auth-subtitle">Binance Futures Testnet Dashboard</p>
 
-    <!-- Main -->
-    <main class="main-content">
-        <!-- Order Form -->
-        <section class="order-panel">
-            <div class="panel-header">
-                <h1 class="panel-title">Place Order</h1>
-                <p class="panel-subtitle">Binance Futures Testnet (USDT-M)</p>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
             </div>
-            <form id="orderForm">
+
+            <!-- Login Form -->
+            <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
                 <div class="form-group">
-                    <label class="form-label" for="symbol">Symbol</label>
-                    <div class="input-wrapper">
-                        <select id="symbol" class="form-select">
-                            <option value="BTCUSDT">BTC / USDT</option>
-                            <option value="ETHUSDT">ETH / USDT</option>
-                            <option value="BNBUSDT">BNB / USDT</option>
-                            <option value="SOLUSDT">SOL / USDT</option>
-                            <option value="XRPUSDT">XRP / USDT</option>
-                            <option value="DOGEUSDT">DOGE / USDT</option>
-                        </select>
-                    </div>
+                    <label class="form-label" for="loginEmail">Email Address</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Side</label>
-                    <div class="side-toggle">
-                        <button type="button" class="side-btn side-buy active" id="btnBuy" onclick="setSide('BUY')"><span class="side-icon">▲</span> BUY / LONG</button>
-                        <button type="button" class="side-btn side-sell" id="btnSell" onclick="setSide('SELL')"><span class="side-icon">▼</span> SELL / SHORT</button>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Order Type</label>
-                    <div class="type-tabs" id="typeTabs">
-                        <button type="button" class="type-tab active" data-type="MARKET" onclick="setType('MARKET',this)">Market</button>
-                        <button type="button" class="type-tab" data-type="LIMIT" onclick="setType('LIMIT',this)">Limit</button>
-                        <button type="button" class="type-tab" data-type="STOP_MARKET" onclick="setType('STOP_MARKET',this)">Stop Market</button>
-                    </div>
-                </div>
-                <div class="form-group" id="priceGroup" style="display:none;">
-                    <label class="form-label" for="price">Price (USDT)</label>
+                    <label class="form-label" for="loginPassword">Password</label>
                     <div class="input-wrapper">
-                        <input type="number" id="price" class="form-input" placeholder="0.00" step="any" min="0">
-                        <span class="input-suffix">USDT</span>
+                        <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password" required minlength="6" style="padding-right:44px">
+                        <button type="button" class="pwd-toggle" onclick="togglePwd('loginPassword',this)">👁️</button>
                     </div>
                 </div>
-                <div class="form-group" id="stopPriceGroup" style="display:none;">
-                    <label class="form-label" for="stopPrice">Stop Price (USDT)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="stopPrice" class="form-input" placeholder="0.00" step="any" min="0">
-                        <span class="input-suffix">USDT</span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="quantity">Quantity</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="quantity" class="form-input" placeholder="0.001" step="any" min="0" required>
-                        <span class="input-suffix" id="qSuffix">BTC</span>
-                    </div>
-                    <div class="quick-amounts">
-                        <button type="button" class="quick-btn" onclick="document.getElementById('quantity').value='0.001'">0.001</button>
-                        <button type="button" class="quick-btn" onclick="document.getElementById('quantity').value='0.01'">0.01</button>
-                        <button type="button" class="quick-btn" onclick="document.getElementById('quantity').value='0.05'">0.05</button>
-                        <button type="button" class="quick-btn" onclick="document.getElementById('quantity').value='0.1'">0.1</button>
-                    </div>
-                </div>
-                <button type="submit" class="submit-btn submit-buy" id="submitBtn">
-                    <span id="btnText">Place BUY Order</span>
-                    <span id="btnLoader" style="display:none"><span class="spinner"></span> Processing...</span>
-                </button>
+                <button type="submit" class="auth-btn">Login</button>
+                <div class="auth-footer">Don't have an account? <a onclick="switchAuthTab('signup')">Sign up</a></div>
             </form>
-        </section>
 
-        <!-- Response Panel -->
-        <section class="response-panel">
-            <div class="response-card" id="responseCard">
-                <div class="response-header">
-                    <h2 class="response-title">Order Response</h2>
-                    <span class="response-status" id="responseStatus">Waiting...</span>
+            <!-- Signup Form -->
+            <form class="auth-form" id="signupForm" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label class="form-label" for="signupName">Full Name</label>
+                    <input type="text" id="signupName" class="form-input" placeholder="John Doe" required>
                 </div>
-                <div class="response-body" id="responseBody">
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-                                <rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 14l2 2 4-4"/>
-                            </svg>
-                        </div>
-                        <p class="empty-text">Place an order to see the response here</p>
-                        <p class="empty-hint">Configure your API keys first using the 🔑 button above</p>
+                <div class="form-group">
+                    <label class="form-label" for="signupEmail">Email Address</label>
+                    <input type="email" id="signupEmail" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signupPassword">Password</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="signupPassword" class="form-input" placeholder="Min 6 characters" required minlength="6" style="padding-right:44px">
+                        <button type="button" class="pwd-toggle" onclick="togglePwd('signupPassword',this)">👁️</button>
                     </div>
                 </div>
-            </div>
-            <div class="history-card">
-                <div class="history-header">
-                    <h2 class="history-title">Recent Orders</h2>
-                    <button class="clear-btn" onclick="clearHistory()">Clear</button>
-                </div>
-                <div class="history-body" id="historyBody">
-                    <div class="empty-state small"><p class="empty-text">No orders yet</p></div>
-                </div>
-            </div>
-        </section>
-    </main>
+                <button type="submit" class="auth-btn">Create Account</button>
+                <div class="auth-footer">Already have an account? <a onclick="switchAuthTab('login')">Login</a></div>
+            </form>
+        </div>
+    </div>
+</div>
 
-    <!-- API Key Modal -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <h2>🔑 Configure API Keys</h2>
-            <p>Enter your Binance Futures Testnet API credentials. Keys are stored locally in your browser only.</p>
-            <div class="form-group">
-                <label class="form-label" for="apiKey">API Key</label>
-                <input type="text" id="apiKey" class="form-input" placeholder="Paste your API key here" style="font-size:0.8rem">
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 2: OTP VERIFICATION
+     ═══════════════════════════════════════════════════ -->
+<div class="screen" id="otpScreen">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <button class="back-btn" onclick="showScreen('authScreen')">← Back to Login</button>
+            <div class="otp-header">
+                <h2>🔐 Verify Your Email</h2>
+                <p>We've sent a 6-digit OTP to<br><span class="otp-email" id="otpEmailDisplay">your@email.com</span></p>
             </div>
-            <div class="form-group">
-                <label class="form-label" for="apiSecret">Secret Key</label>
-                <input type="password" id="apiSecret" class="form-input" placeholder="Paste your secret key here" style="font-size:0.8rem">
+            <div class="otp-demo-box">
+                <div class="otp-demo-label">Your OTP Code (Demo)</div>
+                <div class="otp-demo-code" id="otpDemoCode">------</div>
             </div>
-            <div class="key-warning">⚠️ Testnet keys only — never enter real Binance API keys. Keys are stored in your browser's localStorage and never sent to any third-party server.</div>
-            <div class="modal-actions">
-                <button class="modal-btn secondary" onclick="closeModal()">Cancel</button>
-                <button class="modal-btn primary" onclick="saveKeys()">Save & Connect</button>
+            <div class="otp-inputs" id="otpInputs">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" data-idx="0">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" data-idx="1">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" data-idx="2">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" data-idx="3">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" data-idx="4">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" data-idx="5">
+            </div>
+            <button class="auth-btn" id="verifyOtpBtn" onclick="verifyOTP()">Verify & Continue</button>
+            <div class="otp-resend">
+                <span id="resendText">Resend OTP in <span class="otp-timer" id="otpTimer">30</span>s</span>
+                <a id="resendLink" style="display:none" onclick="resendOTP()">Resend OTP</a>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Toast -->
-    <div class="toast-container" id="toastContainer"></div>
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 3: TRADING DASHBOARD
+     ═══════════════════════════════════════════════════ -->
+<div class="screen" id="dashboardScreen">
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#g1)" stroke-width="2" stroke-linejoin="round"/><path d="M2 17L12 22L22 17" stroke="url(#g1)" stroke-width="2" stroke-linejoin="round"/><path d="M2 12L12 17L22 12" stroke="url(#g1)" stroke-width="2" stroke-linejoin="round"/><defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#a855f7"/></linearGradient></defs></svg></div>
+                <span class="logo-text">TradingBot</span><span class="badge">TESTNET</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="price-ticker"><span class="ticker-label">BTC/USDT</span><span class="ticker-price" id="btcPrice">—</span><span class="ticker-change" id="btcStatus">loading...</span></div>
+            <div class="price-ticker"><span class="ticker-label">ETH/USDT</span><span class="ticker-price" id="ethPrice">—</span></div>
+            <div class="status-dot"><span class="dot" id="dot"></span><span class="status-text" id="statusText">Checking...</span></div>
+            <div class="user-pill"><div class="user-avatar" id="userAvatar">U</div><span id="userDisplayName">User</span></div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
+    <main class="main-content">
+        <section class="order-panel">
+            <div class="panel-header"><h1 class="panel-title">Place Order</h1><p class="panel-subtitle">Binance Futures Testnet (USDT-M)</p></div>
+            <form id="orderForm">
+                <div class="form-group"><label class="form-label" for="symbol">Symbol</label><div class="input-wrapper"><select id="symbol" class="form-select"><option value="BTCUSDT">BTC / USDT</option><option value="ETHUSDT">ETH / USDT</option><option value="BNBUSDT">BNB / USDT</option><option value="SOLUSDT">SOL / USDT</option><option value="XRPUSDT">XRP / USDT</option><option value="DOGEUSDT">DOGE / USDT</option></select></div></div>
+                <div class="form-group"><label class="form-label">Side</label><div class="side-toggle"><button type="button" class="side-btn side-buy active" id="btnBuy" onclick="setSide('BUY')"><span class="side-icon">▲</span> BUY / LONG</button><button type="button" class="side-btn side-sell" id="btnSell" onclick="setSide('SELL')"><span class="side-icon">▼</span> SELL / SHORT</button></div></div>
+                <div class="form-group"><label class="form-label">Order Type</label><div class="type-tabs"><button type="button" class="type-tab active" onclick="setType('MARKET',this)">Market</button><button type="button" class="type-tab" onclick="setType('LIMIT',this)">Limit</button><button type="button" class="type-tab" onclick="setType('STOP_MARKET',this)">Stop Market</button></div></div>
+                <div class="form-group" id="priceGroup" style="display:none"><label class="form-label" for="price">Price (USDT)</label><div class="input-wrapper"><input type="number" id="price" class="form-input" placeholder="0.00" step="any" min="0"><span class="input-suffix">USDT</span></div></div>
+                <div class="form-group" id="stopPriceGroup" style="display:none"><label class="form-label" for="stopPrice">Stop Price (USDT)</label><div class="input-wrapper"><input type="number" id="stopPrice" class="form-input" placeholder="0.00" step="any" min="0"><span class="input-suffix">USDT</span></div></div>
+                <div class="form-group"><label class="form-label" for="quantity">Quantity</label><div class="input-wrapper"><input type="number" id="quantity" class="form-input" placeholder="0.001" step="any" min="0" required><span class="input-suffix" id="qSuffix">BTC</span></div><div class="quick-amounts"><button type="button" class="quick-btn" onclick="document.getElementById('quantity').value='0.001'">0.001</button><button type="button" class="quick-btn" onclick="document.getElementById('quantity').value='0.01'">0.01</button><button type="button" class="quick-btn" onclick="document.getElementById('quantity').value='0.05'">0.05</button><button type="button" class="quick-btn" onclick="document.getElementById('quantity').value='0.1'">0.1</button></div></div>
+                <button type="submit" class="submit-btn submit-buy" id="submitBtn"><span id="btnText">Place BUY Order</span><span id="btnLoader" style="display:none"><span class="spinner"></span> Processing...</span></button>
+            </form>
+        </section>
+        <section class="response-panel">
+            <div class="response-card" id="responseCard"><div class="response-header"><h2 class="response-title">Order Response</h2><span class="response-status" id="responseStatus">Waiting...</span></div><div class="response-body" id="responseBody"><div class="empty-state"><div class="empty-icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 14l2 2 4-4"/></svg></div><p class="empty-text">Place an order to see the response here</p><p class="empty-hint">Select symbol, side, type, and quantity above</p></div></div></div>
+            <div class="history-card"><div class="history-header"><h2 class="history-title">Recent Orders</h2><button class="clear-btn" onclick="clearHistory()">Clear</button></div><div class="history-body" id="historyBody"><div class="empty-state small"><p class="empty-text">No orders yet</p></div></div></div>
+        </section>
+    </main>
+</div>
 
-    <script>
-/* ================================================================
-   Trading Bot — Demo Mode + Live Mode
-   Works on GitHub Pages with simulated trading responses
-   Connects to real Binance API when run locally (Flask)
-   ================================================================ */
+<div class="toast-container" id="toastContainer"></div>
 
-const DEMO_PRICES = {
-    BTCUSDT: 66245.80, ETHUSDT: 3421.55, BNBUSDT: 612.30,
-    SOLUSDT: 178.42, XRPUSDT: 0.5234, DOGEUSDT: 0.1587,
-};
+<script>
+/* ════════════════════════════════════════════════════════
+   AUTH SYSTEM + TRADING ENGINE
+   ════════════════════════════════════════════════════════ */
 
-let state = { side: 'BUY', orderType: 'MARKET', history: [], demoMode: true, orderCounter: 10000000 };
+// ── State ─────────────────────────────────────────────
+const PRICES = { BTCUSDT:66245.80,ETHUSDT:3421.55,BNBUSDT:612.30,SOLUSDT:178.42,XRPUSDT:0.5234,DOGEUSDT:0.1587 };
+let app = { side:'BUY', orderType:'MARKET', history:[], orderCounter:10000000 };
+let currentOTP = '';
+let pendingUser = {};
+let otpCountdown = null;
 
-// ── Simulate realistic price fluctuation ──────────────
-function jitter(price) {
-    const pct = (Math.random() - 0.5) * 0.004; // ±0.2%
-    return price * (1 + pct);
+// ── Screen Management ─────────────────────────────────
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
 }
 
-// ── Try real API, fallback to demo ────────────────────
+// ── Auth Tab Switch ───────────────────────────────────
+function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    if (tab === 'login') {
+        document.querySelectorAll('.auth-tab')[0].classList.add('active');
+        document.getElementById('loginForm').classList.add('active');
+    } else {
+        document.querySelectorAll('.auth-tab')[1].classList.add('active');
+        document.getElementById('signupForm').classList.add('active');
+    }
+}
+
+// ── Password Toggle ───────────────────────────────────
+function togglePwd(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁️'; }
+}
+
+// ── Generate OTP ──────────────────────────────────────
+function generateOTP() {
+    return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+// ── Handle Login ──────────────────────────────────────
+function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const users = JSON.parse(localStorage.getItem('tb_users') || '{}');
+    if (!users[email]) { showToast('❌ Account not found. Please sign up first.', 'error'); return; }
+    if (users[email].password !== password) { showToast('❌ Incorrect password.', 'error'); return; }
+    pendingUser = { email, name: users[email].name };
+    sendOTP(email);
+}
+
+// ── Handle Signup ─────────────────────────────────────
+function handleSignup(e) {
+    e.preventDefault();
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const users = JSON.parse(localStorage.getItem('tb_users') || '{}');
+    if (users[email]) { showToast('⚠️ Account already exists. Please login.', 'error'); switchAuthTab('login'); return; }
+    users[email] = { name, password, createdAt: Date.now() };
+    localStorage.setItem('tb_users', JSON.stringify(users));
+    pendingUser = { email, name };
+    sendOTP(email);
+}
+
+// ── Send OTP ──────────────────────────────────────────
+function sendOTP(email) {
+    currentOTP = generateOTP();
+    document.getElementById('otpEmailDisplay').textContent = email;
+    document.getElementById('otpDemoCode').textContent = currentOTP;
+    showScreen('otpScreen');
+    // Clear old inputs
+    document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled'); });
+    document.querySelectorAll('.otp-digit')[0].focus();
+    startOTPTimer();
+    showToast('📧 OTP sent to ' + email, 'info');
+}
+
+// ── OTP Input Logic ───────────────────────────────────
+document.querySelectorAll('.otp-digit').forEach((inp, i, all) => {
+    inp.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 1);
+        if (this.value) { this.classList.add('filled'); if (i < 5) all[i + 1].focus(); }
+        else { this.classList.remove('filled'); }
+    });
+    inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !this.value && i > 0) { all[i - 1].focus(); all[i - 1].value = ''; all[i - 1].classList.remove('filled'); }
+    });
+    inp.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const paste = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        paste.split('').forEach((ch, ci) => { if (all[ci]) { all[ci].value = ch; all[ci].classList.add('filled'); } });
+        if (paste.length >= 6) all[5].focus();
+    });
+});
+
+// ── Verify OTP ────────────────────────────────────────
+function verifyOTP() {
+    const entered = Array.from(document.querySelectorAll('.otp-digit')).map(d => d.value).join('');
+    if (entered.length < 6) { showToast('Please enter all 6 digits', 'error'); return; }
+    if (entered !== currentOTP) { showToast('❌ Invalid OTP. Please try again.', 'error'); document.querySelectorAll('.otp-digit').forEach(d => { d.value=''; d.classList.remove('filled'); }); document.querySelectorAll('.otp-digit')[0].focus(); return; }
+    // Success!
+    clearInterval(otpCountdown);
+    const session = { email: pendingUser.email, name: pendingUser.name, loggedInAt: Date.now() };
+    localStorage.setItem('tb_session', JSON.stringify(session));
+    showToast('✅ Verified! Welcome, ' + pendingUser.name + '!', 'success');
+    setTimeout(() => enterDashboard(session), 500);
+}
+
+// ── OTP Timer ─────────────────────────────────────────
+function startOTPTimer() {
+    let sec = 30;
+    document.getElementById('resendText').style.display = 'inline';
+    document.getElementById('resendLink').style.display = 'none';
+    document.getElementById('otpTimer').textContent = sec;
+    clearInterval(otpCountdown);
+    otpCountdown = setInterval(() => {
+        sec--;
+        document.getElementById('otpTimer').textContent = sec;
+        if (sec <= 0) { clearInterval(otpCountdown); document.getElementById('resendText').style.display = 'none'; document.getElementById('resendLink').style.display = 'inline'; }
+    }, 1000);
+}
+
+function resendOTP() {
+    currentOTP = generateOTP();
+    document.getElementById('otpDemoCode').textContent = currentOTP;
+    document.querySelectorAll('.otp-digit').forEach(d => { d.value=''; d.classList.remove('filled'); });
+    document.querySelectorAll('.otp-digit')[0].focus();
+    startOTPTimer();
+    showToast('📧 New OTP sent!', 'info');
+}
+
+// ── Enter Dashboard ───────────────────────────────────
+function enterDashboard(session) {
+    const initials = session.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('userAvatar').textContent = initials;
+    document.getElementById('userDisplayName').textContent = session.name.split(' ')[0];
+    showScreen('dashboardScreen');
+    fetchPrices();
+}
+
+// ── Logout ────────────────────────────────────────────
+function logout() {
+    localStorage.removeItem('tb_session');
+    showScreen('authScreen');
+    showToast('👋 Logged out successfully', 'info');
+}
+
+// ── Check Existing Session ────────────────────────────
+function checkSession() {
+    const session = JSON.parse(localStorage.getItem('tb_session') || 'null');
+    if (session && session.email) { enterDashboard(session); }
+}
+
+/* ════════════════════════════════════════════════════════
+   TRADING ENGINE (Demo Mode)
+   ════════════════════════════════════════════════════════ */
+function jitter(p) { return p * (1 + (Math.random() - 0.5) * 0.004); }
+
 async function fetchPrices() {
-    // Try real Binance API first (works when run locally or if CORS allows)
     try {
-        const res = await fetch('https://testnet.binancefuture.com/fapi/v1/ticker/price?symbol=BTCUSDT');
-        if (!res.ok) throw new Error('not ok');
-        const btc = await res.json();
-        const btcP = parseFloat(btc.price);
-        DEMO_PRICES.BTCUSDT = btcP;
-        document.getElementById('btcPrice').textContent = '$' + btcP.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const r = await fetch('https://testnet.binancefuture.com/fapi/v1/ticker/price?symbol=BTCUSDT');
+        if (r.ok) { const d = await r.json(); PRICES.BTCUSDT = parseFloat(d.price); }
+        const r2 = await fetch('https://testnet.binancefuture.com/fapi/v1/ticker/price?symbol=ETHUSDT');
+        if (r2.ok) { const d2 = await r2.json(); PRICES.ETHUSDT = parseFloat(d2.price); }
         document.getElementById('btcStatus').textContent = 'LIVE';
-        document.getElementById('btcStatus').className = 'ticker-change up';
-
-        const res2 = await fetch('https://testnet.binancefuture.com/fapi/v1/ticker/price?symbol=ETHUSDT');
-        if (res2.ok) {
-            const eth = await res2.json();
-            const ethP = parseFloat(eth.price);
-            DEMO_PRICES.ETHUSDT = ethP;
-            document.getElementById('ethPrice').textContent = '$' + ethP.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
-        document.getElementById('dot').className = 'dot online';
-        document.getElementById('statusText').textContent = 'Live';
-        state.demoMode = false;
-        return;
-    } catch (e) { /* CORS blocked or offline — use demo mode */ }
-
-    // Demo mode: show simulated prices with realistic jitter
-    state.demoMode = true;
-    DEMO_PRICES.BTCUSDT = jitter(DEMO_PRICES.BTCUSDT);
-    DEMO_PRICES.ETHUSDT = jitter(DEMO_PRICES.ETHUSDT);
-    document.getElementById('btcPrice').textContent = '$' + DEMO_PRICES.BTCUSDT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('btcStatus').textContent = 'DEMO';
+    } catch (e) {
+        PRICES.BTCUSDT = jitter(PRICES.BTCUSDT); PRICES.ETHUSDT = jitter(PRICES.ETHUSDT);
+        document.getElementById('btcStatus').textContent = 'DEMO';
+    }
+    document.getElementById('btcPrice').textContent = '$' + PRICES.BTCUSDT.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     document.getElementById('btcStatus').className = 'ticker-change up';
-    document.getElementById('ethPrice').textContent = '$' + DEMO_PRICES.ETHUSDT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('ethPrice').textContent = '$' + PRICES.ETHUSDT.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
     document.getElementById('dot').className = 'dot online';
     document.getElementById('statusText').textContent = 'Demo Mode';
 }
 
-// ── HMAC-SHA256 Signing (Web Crypto API) ──────────────
-async function hmacSHA256(secret, message) {
-    const enc = new TextEncoder();
-    const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
-    return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+function simulateOrder(p) {
+    const pr = PRICES[p.symbol]||50000; app.orderCounter++;
+    return new Promise(res => setTimeout(() => res({
+        orderId:app.orderCounter,symbol:p.symbol,side:p.side,type:p.type,
+        status:p.type==='MARKET'?'FILLED':'NEW', origQty:p.quantity,
+        executedQty:p.type==='MARKET'?p.quantity:'0', price:p.price||'0',
+        avgPrice:p.type==='MARKET'?jitter(pr).toFixed(2):'0',
+        stopPrice:p.stopPrice||'0', timeInForce:p.timeInForce||'GTC'
+    }), 400+Math.random()*600));
 }
 
-// ── Demo order simulator ──────────────────────────────
-function simulateOrder(params) {
-    const symbol = params.symbol;
-    const price = DEMO_PRICES[symbol] || 50000;
-    const avgPrice = jitter(price);
-    state.orderCounter++;
+function setSide(s) { app.side=s; document.getElementById('btnBuy').classList.toggle('active',s==='BUY'); document.getElementById('btnSell').classList.toggle('active',s==='SELL'); document.getElementById('btnText').textContent=`Place ${s} Order`; const b=document.getElementById('submitBtn'); b.classList.toggle('submit-buy',s==='BUY'); b.classList.toggle('submit-sell',s==='SELL'); }
+function setType(t,el) { app.orderType=t; document.querySelectorAll('.type-tab').forEach(x=>x.classList.remove('active')); el.classList.add('active'); document.getElementById('priceGroup').style.display=t==='LIMIT'?'block':'none'; document.getElementById('stopPriceGroup').style.display=t==='STOP_MARKET'?'block':'none'; }
+document.getElementById('symbol').addEventListener('change',function(){document.getElementById('qSuffix').textContent=this.value.replace('USDT','')});
 
-    const response = {
-        orderId: state.orderCounter,
-        symbol: symbol,
-        side: params.side,
-        type: params.type,
-        status: params.type === 'MARKET' ? 'FILLED' : 'NEW',
-        origQty: params.quantity,
-        executedQty: params.type === 'MARKET' ? params.quantity : '0',
-        price: params.price || '0',
-        avgPrice: params.type === 'MARKET' ? avgPrice.toFixed(2) : '0',
-        stopPrice: params.stopPrice || '0',
-        timeInForce: params.timeInForce || (params.type === 'MARKET' ? 'GTC' : 'GTC'),
-        updateTime: Date.now(),
-    };
-
-    return new Promise(resolve => setTimeout(() => resolve(response), 400 + Math.random() * 600));
-}
-
-// ── Side / Type / Symbol ──────────────────────────────
-function setSide(side) {
-    state.side = side;
-    document.getElementById('btnBuy').classList.toggle('active', side === 'BUY');
-    document.getElementById('btnSell').classList.toggle('active', side === 'SELL');
-    document.getElementById('btnText').textContent = `Place ${side} Order`;
-    const btn = document.getElementById('submitBtn');
-    btn.classList.toggle('submit-buy', side === 'BUY');
-    btn.classList.toggle('submit-sell', side === 'SELL');
-}
-
-function setType(type, el) {
-    state.orderType = type;
-    document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    document.getElementById('priceGroup').style.display = type === 'LIMIT' ? 'block' : 'none';
-    document.getElementById('stopPriceGroup').style.display = type === 'STOP_MARKET' ? 'block' : 'none';
-}
-
-document.getElementById('symbol').addEventListener('change', function() {
-    document.getElementById('qSuffix').textContent = this.value.replace('USDT', '');
-});
-
-// ── Modal ─────────────────────────────────────────────
-function openModal() {
-    document.getElementById('apiKey').value = localStorage.getItem('bnc_api_key') || '';
-    document.getElementById('apiSecret').value = localStorage.getItem('bnc_api_secret') || '';
-    document.getElementById('modalOverlay').classList.add('active');
-}
-function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
-function saveKeys() {
-    const key = document.getElementById('apiKey').value.trim();
-    const secret = document.getElementById('apiSecret').value.trim();
-    if (!key || !secret) { showToast('Please enter both API Key and Secret', 'error'); return; }
-    localStorage.setItem('bnc_api_key', key);
-    localStorage.setItem('bnc_api_secret', secret);
-    document.getElementById('settingsBtn').classList.add('connected');
-    document.getElementById('settingsBtn').innerHTML = '🔑 Connected';
-    closeModal();
-    showToast('✅ API keys saved!', 'success');
-}
-
-// ── Place Order ───────────────────────────────────────
 document.getElementById('orderForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const qty = parseFloat(document.getElementById('quantity').value);
-    if (!qty || qty <= 0) { showToast('Enter a valid quantity', 'error'); return; }
-
-    const params = {
-        symbol: document.getElementById('symbol').value,
-        side: state.side,
-        type: state.orderType,
-        quantity: String(qty),
-    };
-
-    if (state.orderType === 'LIMIT') {
-        const p = document.getElementById('price').value;
-        if (!p) { showToast('Price is required for Limit orders', 'error'); return; }
-        params.price = String(parseFloat(p));
-        params.timeInForce = 'GTC';
-    }
-    if (state.orderType === 'STOP_MARKET') {
-        const sp = document.getElementById('stopPrice').value;
-        if (!sp) { showToast('Stop price is required for Stop-Market orders', 'error'); return; }
-        params.stopPrice = String(parseFloat(sp));
-    }
-
-    document.getElementById('btnText').style.display = 'none';
-    document.getElementById('btnLoader').style.display = 'inline';
-    document.getElementById('submitBtn').disabled = true;
-
-    try {
-        let data;
-
-        if (state.demoMode) {
-            // Demo mode — simulate realistic response
-            data = await simulateOrder(params);
-        } else {
-            // Live mode — try real Binance API
-            const apiKey = localStorage.getItem('bnc_api_key') || '';
-            const apiSecret = localStorage.getItem('bnc_api_secret') || '';
-            if (!apiKey || !apiSecret) throw new Error('API keys not configured. Click 🔑 API Keys.');
-            params.timestamp = Date.now();
-            params.recvWindow = 5000;
-            const qs = new URLSearchParams(params).toString();
-            params.signature = await hmacSHA256(apiSecret, qs);
-            const fullQs = new URLSearchParams(params).toString();
-            const res = await fetch(`https://testnet.binancefuture.com/fapi/v1/order?${fullQs}`, {
-                method: 'POST', headers: { 'X-MBX-APIKEY': apiKey }
-            });
-            data = await res.json();
-            if (data.code && data.code < 0) throw new Error(data.msg);
-        }
-
-        renderResponse(data, true);
-        addHistory(data, true);
-        const modeTag = state.demoMode ? ' (Demo)' : '';
-        showToast(`✅ ${state.side} order placed!${modeTag}`, 'success');
-        flashCard('success');
-    } catch (err) {
-        // If CORS blocks live mode, fallback to demo
-        if (!state.demoMode && err.message === 'Failed to fetch') {
-            state.demoMode = true;
-            const data = await simulateOrder(params);
-            renderResponse(data, true);
-            addHistory(data, true);
-            showToast('✅ Order placed in Demo Mode (CORS blocked live API)', 'info');
-            flashCard('success');
-        } else {
-            renderError(err.message);
-            addHistory({ symbol: params.symbol, side: state.side, type: state.orderType, origQty: params.quantity, status: 'FAILED' }, false);
-            showToast('❌ ' + err.message, 'error');
-            flashCard('error');
-        }
-    } finally {
-        document.getElementById('btnText').style.display = 'inline';
-        document.getElementById('btnLoader').style.display = 'none';
-        document.getElementById('submitBtn').disabled = false;
-    }
+    const qty=parseFloat(document.getElementById('quantity').value);
+    if(!qty||qty<=0){showToast('Enter a valid quantity','error');return}
+    const p={symbol:document.getElementById('symbol').value,side:app.side,type:app.orderType,quantity:String(qty)};
+    if(app.orderType==='LIMIT'){const v=document.getElementById('price').value;if(!v){showToast('Price required for Limit orders','error');return}p.price=String(parseFloat(v));p.timeInForce='GTC'}
+    if(app.orderType==='STOP_MARKET'){const v=document.getElementById('stopPrice').value;if(!v){showToast('Stop price required','error');return}p.stopPrice=String(parseFloat(v))}
+    document.getElementById('btnText').style.display='none';document.getElementById('btnLoader').style.display='inline';document.getElementById('submitBtn').disabled=true;
+    try{const d=await simulateOrder(p);renderResponse(d,true);addHistory(d);showToast(`✅ ${app.side} order placed! (Demo)`,'success');flashCard('success')}
+    catch(err){renderError(err.message);showToast('❌ '+err.message,'error');flashCard('error')}
+    finally{document.getElementById('btnText').style.display='inline';document.getElementById('btnLoader').style.display='none';document.getElementById('submitBtn').disabled=false}
 });
 
-// ── Render Response ───────────────────────────────────
-function renderResponse(o, ok) {
-    const s = document.getElementById('responseStatus');
-    s.textContent = o.status || 'UNKNOWN';
-    s.className = 'response-status ' + (ok ? 'success' : 'error');
+function renderResponse(o,ok){const s=document.getElementById('responseStatus');s.textContent=o.status;s.className='response-status '+(ok?'success':'error');const f=[['Order ID',o.orderId,''],['Status',o.status,o.status==='FILLED'?'filled':'new-order'],['Symbol',o.symbol,''],['Side',o.side,o.side==='BUY'?'buy':'sell'],['Type',o.type,''],['Quantity',o.origQty,'']];if(o.executedQty&&o.executedQty!=='0')f.push(['Executed Qty',o.executedQty,'']);if(o.avgPrice&&o.avgPrice!=='0')f.push(['Avg Price','$'+parseFloat(o.avgPrice).toLocaleString('en-US',{minimumFractionDigits:2}),'']);if(o.price&&o.price!=='0')f.push(['Price','$'+parseFloat(o.price).toLocaleString('en-US',{minimumFractionDigits:2}),'']);if(o.stopPrice&&o.stopPrice!=='0')f.push(['Stop Price','$'+parseFloat(o.stopPrice).toLocaleString('en-US',{minimumFractionDigits:2}),'']);f.push(['Time In Force',o.timeInForce,'']);let h='<div class="order-details fade-in">';f.forEach(([l,v,c])=>{if(v!=null)h+=`<div class="detail-item"><div class="detail-label">${l}</div><div class="detail-value ${c}">${v}</div></div>`});h+='</div>';document.getElementById('responseBody').innerHTML=h}
+function renderError(m){document.getElementById('responseStatus').textContent='FAILED';document.getElementById('responseStatus').className='response-status error';document.getElementById('responseBody').innerHTML=`<div class="order-details fade-in"><div class="detail-item full-width"><div class="detail-label">Error</div><div class="detail-value sell">${m}</div></div></div>`}
 
-    const fields = [
-        ['Order ID', o.orderId, ''], ['Status', o.status, o.status==='FILLED'?'filled':'new-order'],
-        ['Symbol', o.symbol, ''], ['Side', o.side, o.side==='BUY'?'buy':'sell'],
-        ['Type', o.type, ''], ['Quantity', o.origQty, ''],
-    ];
-    if (o.executedQty && o.executedQty !== '0') fields.push(['Executed Qty', o.executedQty, '']);
-    if (o.avgPrice && o.avgPrice !== '0') fields.push(['Avg Price', '$' + parseFloat(o.avgPrice).toLocaleString('en-US', {minimumFractionDigits:2}), '']);
-    if (o.price && o.price !== '0') fields.push(['Price', '$' + parseFloat(o.price).toLocaleString('en-US', {minimumFractionDigits:2}), '']);
-    if (o.stopPrice && o.stopPrice !== '0') fields.push(['Stop Price', '$' + parseFloat(o.stopPrice).toLocaleString('en-US', {minimumFractionDigits:2}), '']);
-    if (o.timeInForce) fields.push(['Time In Force', o.timeInForce, '']);
-
-    let h = '<div class="order-details fade-in">';
-    fields.forEach(([l,v,c]) => { if(v!=null) h += `<div class="detail-item"><div class="detail-label">${l}</div><div class="detail-value ${c}">${v}</div></div>`; });
-    h += '</div>';
-    document.getElementById('responseBody').innerHTML = h;
-}
-
-function renderError(msg) {
-    const s = document.getElementById('responseStatus');
-    s.textContent = 'FAILED'; s.className = 'response-status error';
-    document.getElementById('responseBody').innerHTML = `<div class="order-details fade-in"><div class="detail-item full-width"><div class="detail-label">Error</div><div class="detail-value sell">${msg}</div></div></div>`;
-}
-
-// ── History ───────────────────────────────────────────
-function addHistory(o, ok) {
-    state.history.unshift({ symbol: o.symbol, side: o.side, type: o.type, qty: o.origQty||o.quantity, status: o.status||'FAILED', time: new Date().toLocaleTimeString() });
-    if (state.history.length > 20) state.history.pop();
-    renderHistory();
-}
-function renderHistory() {
-    const el = document.getElementById('historyBody');
-    if (!state.history.length) { el.innerHTML = '<div class="empty-state small"><p class="empty-text">No orders yet</p></div>'; return; }
-    el.innerHTML = state.history.map(o => {
-        const sc = o.side==='BUY'?'buy':'sell', stc = o.status==='FILLED'?'filled':o.status==='NEW'?'new-order':'failed';
-        return `<div class="history-item slide-up"><div class="history-left"><span class="history-side ${sc}">${o.side}</span><div class="history-info"><span class="history-symbol">${o.symbol}</span><span class="history-type">${o.type} · ${o.time}</span></div></div><div class="history-right"><span class="history-qty">${o.qty}</span><span class="history-status ${stc}">${o.status}</span></div></div>`;
-    }).join('');
-}
-function clearHistory() { state.history = []; renderHistory(); }
-
-// ── Helpers ───────────────────────────────────────────
-function flashCard(t) { const c = document.getElementById('responseCard'); c.classList.add('flash-'+t); setTimeout(() => c.classList.remove('flash-'+t), 1500); }
-function showToast(msg, type='info') {
-    const t = document.createElement('div'); t.className = 'toast '+type; t.textContent = msg;
-    document.getElementById('toastContainer').appendChild(t);
-    setTimeout(() => { t.classList.add('exit'); setTimeout(() => t.remove(), 300); }, 4000);
-}
+function addHistory(o){app.history.unshift({symbol:o.symbol,side:o.side,type:o.type,qty:o.origQty,status:o.status,time:new Date().toLocaleTimeString()});if(app.history.length>20)app.history.pop();renderHistory()}
+function renderHistory(){const el=document.getElementById('historyBody');if(!app.history.length){el.innerHTML='<div class="empty-state small"><p class="empty-text">No orders yet</p></div>';return}el.innerHTML=app.history.map(o=>{const sc=o.side==='BUY'?'buy':'sell',stc=o.status==='FILLED'?'filled':o.status==='NEW'?'new-order':'failed';return`<div class="history-item slide-up"><div class="history-left"><span class="history-side ${sc}">${o.side}</span><div class="history-info"><span class="history-symbol">${o.symbol}</span><span class="history-type">${o.type} · ${o.time}</span></div></div><div class="history-right"><span class="history-qty">${o.qty}</span><span class="history-status ${stc}">${o.status}</span></div></div>`}).join('')}
+function clearHistory(){app.history=[];renderHistory()}
+function flashCard(t){const c=document.getElementById('responseCard');c.classList.add('flash-'+t);setTimeout(()=>c.classList.remove('flash-'+t),1500)}
+function showToast(m,t='info'){const e=document.createElement('div');e.className='toast '+t;e.textContent=m;document.getElementById('toastContainer').appendChild(e);setTimeout(()=>{e.classList.add('exit');setTimeout(()=>e.remove(),300)},4000)}
 
 // ── Init ──────────────────────────────────────────────
-fetchPrices();
-setInterval(fetchPrices, 10000);
-if (localStorage.getItem('bnc_api_key')) {
-    document.getElementById('settingsBtn').classList.add('connected');
-    document.getElementById('settingsBtn').innerHTML = '🔑 Connected';
-}
-    </script>
+setInterval(()=>{if(document.getElementById('dashboardScreen').classList.contains('active'))fetchPrices()},10000);
+checkSession();
+</script>
 </body>
 </html>
