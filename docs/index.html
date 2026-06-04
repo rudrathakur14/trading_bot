@@ -493,12 +493,62 @@ body {
 
     <script>
 /* ================================================================
-   Trading Bot — Client-Side Binance API Integration
-   HMAC-SHA256 signing done entirely in the browser
+   Trading Bot — Demo Mode + Live Mode
+   Works on GitHub Pages with simulated trading responses
+   Connects to real Binance API when run locally (Flask)
    ================================================================ */
 
-const BASE_URL = 'https://testnet.binancefuture.com';
-let state = { side: 'BUY', orderType: 'MARKET', history: [] };
+const DEMO_PRICES = {
+    BTCUSDT: 66245.80, ETHUSDT: 3421.55, BNBUSDT: 612.30,
+    SOLUSDT: 178.42, XRPUSDT: 0.5234, DOGEUSDT: 0.1587,
+};
+
+let state = { side: 'BUY', orderType: 'MARKET', history: [], demoMode: true, orderCounter: 10000000 };
+
+// ── Simulate realistic price fluctuation ──────────────
+function jitter(price) {
+    const pct = (Math.random() - 0.5) * 0.004; // ±0.2%
+    return price * (1 + pct);
+}
+
+// ── Try real API, fallback to demo ────────────────────
+async function fetchPrices() {
+    // Try real Binance API first (works when run locally or if CORS allows)
+    try {
+        const res = await fetch('https://testnet.binancefuture.com/fapi/v1/ticker/price?symbol=BTCUSDT');
+        if (!res.ok) throw new Error('not ok');
+        const btc = await res.json();
+        const btcP = parseFloat(btc.price);
+        DEMO_PRICES.BTCUSDT = btcP;
+        document.getElementById('btcPrice').textContent = '$' + btcP.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('btcStatus').textContent = 'LIVE';
+        document.getElementById('btcStatus').className = 'ticker-change up';
+
+        const res2 = await fetch('https://testnet.binancefuture.com/fapi/v1/ticker/price?symbol=ETHUSDT');
+        if (res2.ok) {
+            const eth = await res2.json();
+            const ethP = parseFloat(eth.price);
+            DEMO_PRICES.ETHUSDT = ethP;
+            document.getElementById('ethPrice').textContent = '$' + ethP.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        document.getElementById('dot').className = 'dot online';
+        document.getElementById('statusText').textContent = 'Live';
+        state.demoMode = false;
+        return;
+    } catch (e) { /* CORS blocked or offline — use demo mode */ }
+
+    // Demo mode: show simulated prices with realistic jitter
+    state.demoMode = true;
+    DEMO_PRICES.BTCUSDT = jitter(DEMO_PRICES.BTCUSDT);
+    DEMO_PRICES.ETHUSDT = jitter(DEMO_PRICES.ETHUSDT);
+    document.getElementById('btcPrice').textContent = '$' + DEMO_PRICES.BTCUSDT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('btcStatus').textContent = 'DEMO';
+    document.getElementById('btcStatus').className = 'ticker-change up';
+    document.getElementById('ethPrice').textContent = '$' + DEMO_PRICES.ETHUSDT.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('dot').className = 'dot online';
+    document.getElementById('statusText').textContent = 'Demo Mode';
+}
 
 // ── HMAC-SHA256 Signing (Web Crypto API) ──────────────
 async function hmacSHA256(secret, message) {
@@ -508,47 +558,29 @@ async function hmacSHA256(secret, message) {
     return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── API Request Helper ────────────────────────────────
-async function binanceRequest(method, endpoint, params = {}, signed = false) {
-    const apiKey = localStorage.getItem('bnc_api_key') || '';
-    const apiSecret = localStorage.getItem('bnc_api_secret') || '';
+// ── Demo order simulator ──────────────────────────────
+function simulateOrder(params) {
+    const symbol = params.symbol;
+    const price = DEMO_PRICES[symbol] || 50000;
+    const avgPrice = jitter(price);
+    state.orderCounter++;
 
-    if (signed) {
-        if (!apiKey || !apiSecret) throw new Error('API keys not configured. Click 🔑 API Keys to set up.');
-        params.timestamp = Date.now();
-        params.recvWindow = 5000;
-        const qs = new URLSearchParams(params).toString();
-        params.signature = await hmacSHA256(apiSecret, qs);
-    }
+    const response = {
+        orderId: state.orderCounter,
+        symbol: symbol,
+        side: params.side,
+        type: params.type,
+        status: params.type === 'MARKET' ? 'FILLED' : 'NEW',
+        origQty: params.quantity,
+        executedQty: params.type === 'MARKET' ? params.quantity : '0',
+        price: params.price || '0',
+        avgPrice: params.type === 'MARKET' ? avgPrice.toFixed(2) : '0',
+        stopPrice: params.stopPrice || '0',
+        timeInForce: params.timeInForce || (params.type === 'MARKET' ? 'GTC' : 'GTC'),
+        updateTime: Date.now(),
+    };
 
-    const qs = new URLSearchParams(params).toString();
-    const url = `${BASE_URL}${endpoint}?${qs}`;
-    const headers = signed ? { 'X-MBX-APIKEY': apiKey } : {};
-
-    const res = await fetch(url, { method, headers });
-    const data = await res.json();
-
-    if (data.code && data.code < 0) throw new Error(data.msg || `API Error: ${data.code}`);
-    return data;
-}
-
-// ── Price Fetching ────────────────────────────────────
-async function fetchPrices() {
-    try {
-        const btc = await binanceRequest('GET', '/fapi/v1/ticker/price', { symbol: 'BTCUSDT' });
-        document.getElementById('btcPrice').textContent = '$' + parseFloat(btc.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('btcStatus').textContent = 'LIVE';
-        document.getElementById('btcStatus').className = 'ticker-change up';
-
-        const eth = await binanceRequest('GET', '/fapi/v1/ticker/price', { symbol: 'ETHUSDT' });
-        document.getElementById('ethPrice').textContent = '$' + parseFloat(eth.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-        document.getElementById('dot').className = 'dot online';
-        document.getElementById('statusText').textContent = 'Connected';
-    } catch (e) {
-        document.getElementById('dot').className = 'dot offline';
-        document.getElementById('statusText').textContent = 'Offline';
-    }
+    return new Promise(resolve => setTimeout(() => resolve(response), 400 + Math.random() * 600));
 }
 
 // ── Side / Type / Symbol ──────────────────────────────
@@ -556,8 +588,8 @@ function setSide(side) {
     state.side = side;
     document.getElementById('btnBuy').classList.toggle('active', side === 'BUY');
     document.getElementById('btnSell').classList.toggle('active', side === 'SELL');
-    const btn = document.getElementById('submitBtn');
     document.getElementById('btnText').textContent = `Place ${side} Order`;
+    const btn = document.getElementById('submitBtn');
     btn.classList.toggle('submit-buy', side === 'BUY');
     btn.classList.toggle('submit-sell', side === 'SELL');
 }
@@ -590,7 +622,7 @@ function saveKeys() {
     document.getElementById('settingsBtn').classList.add('connected');
     document.getElementById('settingsBtn').innerHTML = '🔑 Connected';
     closeModal();
-    showToast('✅ API keys saved! Ready to trade.', 'success');
+    showToast('✅ API keys saved!', 'success');
 }
 
 // ── Place Order ───────────────────────────────────────
@@ -623,16 +655,48 @@ document.getElementById('orderForm').addEventListener('submit', async function(e
     document.getElementById('submitBtn').disabled = true;
 
     try {
-        const data = await binanceRequest('POST', '/fapi/v1/order', params, true);
+        let data;
+
+        if (state.demoMode) {
+            // Demo mode — simulate realistic response
+            data = await simulateOrder(params);
+        } else {
+            // Live mode — try real Binance API
+            const apiKey = localStorage.getItem('bnc_api_key') || '';
+            const apiSecret = localStorage.getItem('bnc_api_secret') || '';
+            if (!apiKey || !apiSecret) throw new Error('API keys not configured. Click 🔑 API Keys.');
+            params.timestamp = Date.now();
+            params.recvWindow = 5000;
+            const qs = new URLSearchParams(params).toString();
+            params.signature = await hmacSHA256(apiSecret, qs);
+            const fullQs = new URLSearchParams(params).toString();
+            const res = await fetch(`https://testnet.binancefuture.com/fapi/v1/order?${fullQs}`, {
+                method: 'POST', headers: { 'X-MBX-APIKEY': apiKey }
+            });
+            data = await res.json();
+            if (data.code && data.code < 0) throw new Error(data.msg);
+        }
+
         renderResponse(data, true);
         addHistory(data, true);
-        showToast(`✅ ${state.side} order placed!`, 'success');
+        const modeTag = state.demoMode ? ' (Demo)' : '';
+        showToast(`✅ ${state.side} order placed!${modeTag}`, 'success');
         flashCard('success');
     } catch (err) {
-        renderError(err.message);
-        addHistory({ symbol: params.symbol, side: state.side, type: state.orderType, origQty: params.quantity, status: 'FAILED' }, false);
-        showToast('❌ ' + err.message, 'error');
-        flashCard('error');
+        // If CORS blocks live mode, fallback to demo
+        if (!state.demoMode && err.message === 'Failed to fetch') {
+            state.demoMode = true;
+            const data = await simulateOrder(params);
+            renderResponse(data, true);
+            addHistory(data, true);
+            showToast('✅ Order placed in Demo Mode (CORS blocked live API)', 'info');
+            flashCard('success');
+        } else {
+            renderError(err.message);
+            addHistory({ symbol: params.symbol, side: state.side, type: state.orderType, origQty: params.quantity, status: 'FAILED' }, false);
+            showToast('❌ ' + err.message, 'error');
+            flashCard('error');
+        }
     } finally {
         document.getElementById('btnText').style.display = 'inline';
         document.getElementById('btnLoader').style.display = 'none';
@@ -652,9 +716,10 @@ function renderResponse(o, ok) {
         ['Type', o.type, ''], ['Quantity', o.origQty, ''],
     ];
     if (o.executedQty && o.executedQty !== '0') fields.push(['Executed Qty', o.executedQty, '']);
-    if (o.avgPrice && o.avgPrice !== '0') fields.push(['Avg Price', o.avgPrice, '']);
-    if (o.price && o.price !== '0') fields.push(['Price', o.price, '']);
-    if (o.stopPrice && o.stopPrice !== '0') fields.push(['Stop Price', o.stopPrice, '']);
+    if (o.avgPrice && o.avgPrice !== '0') fields.push(['Avg Price', '$' + parseFloat(o.avgPrice).toLocaleString('en-US', {minimumFractionDigits:2}), '']);
+    if (o.price && o.price !== '0') fields.push(['Price', '$' + parseFloat(o.price).toLocaleString('en-US', {minimumFractionDigits:2}), '']);
+    if (o.stopPrice && o.stopPrice !== '0') fields.push(['Stop Price', '$' + parseFloat(o.stopPrice).toLocaleString('en-US', {minimumFractionDigits:2}), '']);
+    if (o.timeInForce) fields.push(['Time In Force', o.timeInForce, '']);
 
     let h = '<div class="order-details fade-in">';
     fields.forEach(([l,v,c]) => { if(v!=null) h += `<div class="detail-item"><div class="detail-label">${l}</div><div class="detail-value ${c}">${v}</div></div>`; });
@@ -694,7 +759,7 @@ function showToast(msg, type='info') {
 
 // ── Init ──────────────────────────────────────────────
 fetchPrices();
-setInterval(fetchPrices, 15000);
+setInterval(fetchPrices, 10000);
 if (localStorage.getItem('bnc_api_key')) {
     document.getElementById('settingsBtn').classList.add('connected');
     document.getElementById('settingsBtn').innerHTML = '🔑 Connected';
