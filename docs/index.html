@@ -562,6 +562,7 @@ body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-
                     <span class="nav-icon">💰</span><span class="nav-label">Wallet</span>
                 </div>
                 <div class="nav-divider"></div>
+                <div class="nav-item" data-tab="ai" onclick="switchTab('ai')"><span class="nav-icon">🤖</span><span class="nav-label">AI Assistant</span></div>
                 <div class="nav-item" data-tab="profile" onclick="switchTab('profile')">
                     <span class="nav-icon">👤</span><span class="nav-label">Profile</span>
                 </div>
@@ -804,6 +805,49 @@ body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-
                     </div>
                 </div>
 
+                <!-- ═══ AI ASSISTANT TAB ═══ -->
+                <div class="tab-content" id="tab-ai">
+                    <div class="card-wrapper" style="display:flex; flex-direction:column; height: calc(100vh - 140px); min-height: 500px; max-width: 900px; margin: 0 auto; overflow: hidden;">
+                        <div class="card-header" style="display:flex; align-items:center; justify-content:space-between; padding:16px 24px;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <span style="font-size:1.5rem;">🤖</span>
+                                <div>
+                                    <h3 class="card-title" style="margin:0;">Gemini AI Trading Assistant</h3>
+                                    <p style="font-size:0.75rem; color:var(--text-muted); margin:0;">Your intelligent companion for market analysis & queries</p>
+                                </div>
+                            </div>
+                            <span id="aiStatusIndicator"></span>
+                        </div>
+                        
+                        <!-- Messages Area -->
+                        <div id="aiMessages" style="flex:1; padding:24px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; background: rgba(10, 14, 23, 0.4);">
+                            <!-- Default greeting from AI -->
+                            <div class="ai-message" style="display:flex; gap:12px; max-width:85%; align-self:flex-start;">
+                                <div style="width:32px; height:32px; border-radius:50%; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem;">🤖</div>
+                                <div style="background:var(--bg-hover); border:1px solid var(--border-subtle); padding:12px 16px; border-radius: 0 16px 16px 16px; font-size:0.9rem; line-height:1.5; color:var(--text-primary);">
+                                    Hello! I am your Gemini AI Trading Assistant. How can I help you today? You can ask me about stock markets, portfolio optimization, SIP vs Lump sum, or mutual funds!
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Suggestions Chips -->
+                        <div style="padding:12px 24px; display:flex; gap:8px; flex-wrap:wrap; background: rgba(10, 14, 23, 0.4); border-top: 1px solid var(--border-subtle);">
+                            <button class="quick-btn" onclick="sendQuickPrompt('Tell me about the NIFTY 50 index performance')" style="flex: none; padding:6px 12px; border-radius:20px; font-family:var(--font-sans); font-size:0.78rem;">📈 NIFTY 50 Info</button>
+                            <button class="quick-btn" onclick="sendQuickPrompt('Should I invest via SIP or Lump sum?')" style="flex: none; padding:6px 12px; border-radius:20px; font-family:var(--font-sans); font-size:0.78rem;">💰 SIP vs Lump Sum</button>
+                            <button class="quick-btn" onclick="sendQuickPrompt('How can I optimize my portfolio?')" style="flex: none; padding:6px 12px; border-radius:20px; font-family:var(--font-sans); font-size:0.78rem;">⚖️ Portfolio Optimization</button>
+                            <button class="quick-btn" onclick="sendQuickPrompt('What are mutual funds and how do I choose one?')" style="flex: none; padding:6px 12px; border-radius:20px; font-family:var(--font-sans); font-size:0.78rem;">🏦 Mutual Funds Guide</button>
+                        </div>
+
+                        <!-- Chat Input Form -->
+                        <div style="padding:16px 24px; border-top:1px solid var(--border-subtle); display:flex; gap:12px; align-items:center; background: var(--bg-card);">
+                            <input type="text" id="aiInput" class="form-input" placeholder="Ask Gemini..." onkeydown="if(event.key === 'Enter') sendAIMessage()" style="flex:1; border-radius: var(--r-md); height:48px;" />
+                            <button class="btn-primary btn-md" onclick="sendAIMessage()" style="height:48px; display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700; border-radius: var(--r-md); padding: 0 24px; cursor:pointer;">
+                                Send ➔
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- ═══ PROFILE TAB ═══ -->
                 <div class="tab-content" id="tab-profile">
                     <div class="profile-card">
@@ -861,6 +905,11 @@ const EMAILJS_CONFIG = {
 };
 
 const isEmailJSEnabled = EMAILJS_CONFIG.publicKey && !EMAILJS_CONFIG.publicKey.startsWith("YOUR_");
+
+const GEMINI_CONFIG = {
+    apiKey: "YOUR_GEMINI_API_KEY"
+};
+const isGeminiEnabled = GEMINI_CONFIG.apiKey && !GEMINI_CONFIG.apiKey.startsWith("YOUR_");
 
 if (isEmailJSEnabled) {
     emailjs.init({
@@ -1218,6 +1267,7 @@ const tabTitles = {
     trade: '💹 Trade',
     mutualfunds: '🏦 Mutual Funds',
     wallet: '💰 Wallet',
+    ai: '🤖 AI Assistant',
     profile: '👤 Profile'
 };
 
@@ -1843,6 +1893,189 @@ function renderTransactions(txns) {
 }
 
 /* ══════════════════════════════════════════════════════
+   AI ASSISTANT
+   ══════════════════════════════════════════════════════ */
+function initAIStatusBadge() {
+    const badge = document.getElementById('aiStatusIndicator');
+    if (!badge) return;
+    badge.style.textAlign = 'center';
+    badge.style.padding = '6px 12px';
+    badge.style.borderRadius = 'var(--r-sm)';
+    badge.style.fontSize = '0.75rem';
+    badge.style.fontWeight = '600';
+    badge.style.display = 'inline-block';
+    
+    if (isGeminiEnabled) {
+        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+        badge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+        badge.style.color = 'var(--buy)';
+        badge.textContent = '🟢 Gemini Active';
+    } else {
+        badge.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+        badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+        badge.style.color = 'var(--warn)';
+        badge.textContent = '⚠️ Offline (Sandbox Mode)';
+    }
+}
+
+async function askGemini(prompt) {
+    try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_CONFIG.apiKey}`;
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                contents: [
+                    {
+                        parts: [
+                            {
+                                text: `System Instruction: You are a professional trading assistant. Keep all responses under 150 words.\n\nUser Question: ${prompt}`
+                            }
+                        ]
+                    }
+                ]
+            })
+        });
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!responseText) {
+            throw new Error("No response text received from Gemini.");
+        }
+        return responseText;
+    } catch (error) {
+        console.error("Gemini API Error:", error);
+        throw error;
+    }
+}
+
+function getMockAIResponse(prompt) {
+    const p = prompt.toLowerCase();
+    if (p.includes("nifty") || p.includes("index")) {
+        return "The **NIFTY 50** is India's benchmark stock market index representing the weighted average of 50 of the largest Indian companies listed on the NSE. Recently, it has shown strong resilience, trading around **24,850** points. Key drivers include robust corporate earnings, steady domestic institutional inflows (DIIs), and positive macroeconomic indicators like stable inflation. Analysts suggest maintaining a diversified portfolio with strong large-cap names.";
+    } else if (p.includes("sip") || p.includes("lump sum") || p.includes("lumpsum")) {
+        return "Choosing between **SIP** (Systematic Investment Plan) and **Lump sum** depends on your market view:\n- **SIP** is ideal for volatile markets, averaging your cost over time (rupee cost averaging) and instilling disciplined investing.\n- **Lump sum** works best when the market is at a clear bottom or during a strong bull run, as it invests all capital upfront.\n*Verdict:* For long-term retail investors, SIP is highly recommended to mitigate timing risks.";
+    } else if (p.includes("portfolio") || p.includes("optimize") || p.includes("optimization")) {
+        return "To **optimize your portfolio**:\n1. **Asset Allocation:** Balance your funds between stocks, bonds, crypto, and gold based on your risk tolerance.\n2. **Diversification:** Don't put all eggs in one basket. In stocks, mix Sectors (IT, Banking, FMCG).\n3. **Rebalancing:** Review your portfolio bi-annually or annually to restore your original target allocation.\n4. **Reduce Costs:** Choose direct mutual funds and low-cost index ETFs to minimize expense ratios.";
+    } else if (p.includes("mutual fund") || p.includes("fund")) {
+        return "For **Mutual Funds**, look at three core steps:\n1. **Define Your Goal & Horizon:** Equity funds (Large/Mid/Small Cap) for long-term goals (5+ years); Debt or Liquid funds for short-term (<3 years).\n2. **Analyze Key Metrics:** Check 3Y/5Y rolling returns, expense ratio, and standard deviation (risk metric).\n3. **Diversified Selection:** A good starter mix is 1 Flexi Cap Fund (like *Parag Parikh Flexi Cap*) + 1 Large Cap/Index Fund.";
+    }
+    return "I am currently in sandbox/offline mode. You can ask me about **NIFTY 50**, **SIP vs Lump sum**, **portfolio optimization**, or **mutual funds**, and I'll provide simulated professional insights! To enable live responses, please configure a valid `apiKey` in `GEMINI_CONFIG`.";
+}
+
+function sendQuickPrompt(prompt) {
+    const inputEl = document.getElementById('aiInput');
+    if (inputEl) {
+        inputEl.value = prompt;
+        sendAIMessage();
+    }
+}
+
+async function sendAIMessage() {
+    const inputEl = document.getElementById('aiInput');
+    if (!inputEl) return;
+    const prompt = inputEl.value.trim();
+    if (!prompt) return;
+    
+    // Add user message
+    appendAIMessage(prompt, 'user');
+    inputEl.value = '';
+    
+    // Show typing indicator
+    const typingId = 'typing-' + Date.now();
+    const container = document.getElementById('aiMessages');
+    const typingDiv = document.createElement('div');
+    typingDiv.id = typingId;
+    typingDiv.style.display = 'flex';
+    typingDiv.style.gap = '12px';
+    typingDiv.style.maxWidth = '85%';
+    typingDiv.style.alignSelf = 'flex-start';
+    typingDiv.innerHTML = `
+        <div style="width:32px; height:32px; border-radius:50%; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem;">🤖</div>
+        <div style="background:var(--bg-hover); border:1px solid var(--border-subtle); padding:12px 16px; border-radius:0 16px 16px 16px; font-size:0.9rem; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">
+            <span class="spinner" style="border-top-color:var(--accent);"></span> Gemini is thinking...
+        </div>
+    `;
+    container.appendChild(typingDiv);
+    container.scrollTop = container.scrollHeight;
+
+    try {
+        let responseText;
+        if (isGeminiEnabled) {
+            responseText = await askGemini(prompt);
+        } else {
+            // Simulate network delay
+            await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+            responseText = getMockAIResponse(prompt);
+        }
+        
+        // Remove typing indicator
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+        
+        appendAIMessage(responseText, 'ai');
+    } catch (error) {
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+        
+        appendAIMessage(`❌ Error generating response: ${error.message || error}`, 'ai');
+        showToast('Failed to get response from Gemini AI', 'error');
+    }
+}
+
+function appendAIMessage(text, sender) {
+    const container = document.getElementById('aiMessages');
+    if (!container) return;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.style.display = 'flex';
+    messageDiv.style.gap = '12px';
+    messageDiv.style.maxWidth = '85%';
+    messageDiv.style.alignSelf = sender === 'user' ? 'flex-end' : 'flex-start';
+    
+    // Formatting bold, italics, code
+    let formattedText = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code style="background:rgba(99,102,241,0.1); padding:2px 6px; border-radius:4px; font-family:var(--font-mono); font-size:0.85rem; color:var(--accent);">$1</code>')
+        .replace(/\n/g, '<br>');
+
+    const avatar = sender === 'user' ? '👤' : '🤖';
+    const avatarBg = sender === 'user' ? 'rgba(168,85,247,0.2)' : 'rgba(99,102,241,0.2)';
+    const avatarBorder = sender === 'user' ? 'rgba(168,85,247,0.3)' : 'rgba(99,102,241,0.3)';
+    const msgBg = sender === 'user' ? 'rgba(99,102,241,0.15)' : 'var(--bg-hover)';
+    const msgBorder = sender === 'user' ? 'rgba(99,102,241,0.25)' : 'var(--border-subtle)';
+    const msgBorderRadius = sender === 'user' ? '16px 0 16px 16px' : '0 16px 16px 16px';
+
+    if (sender === 'user') {
+        messageDiv.innerHTML = `
+            <div style="background:${msgBg}; border:1px solid ${msgBorder}; padding:12px 16px; border-radius:${msgBorderRadius}; font-size:0.9rem; line-height:1.5; color:var(--text-primary); text-align:right;">
+                ${formattedText}
+            </div>
+            <div style="width:32px; height:32px; border-radius:50%; background:${avatarBg}; border:1px solid ${avatarBorder}; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem;">${avatar}</div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div style="width:32px; height:32px; border-radius:50%; background:${avatarBg}; border:1px solid ${avatarBorder}; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem;">${avatar}</div>
+            <div style="background:${msgBg}; border:1px solid ${msgBorder}; padding:12px 16px; border-radius:${msgBorderRadius}; font-size:0.9rem; line-height:1.5; color:var(--text-primary);">
+                ${formattedText}
+            </div>
+        `;
+    }
+    
+    container.appendChild(messageDiv);
+    container.scrollTop = container.scrollHeight;
+}
+
+/* ══════════════════════════════════════════════════════
    PROFILE TAB
    ══════════════════════════════════════════════════════ */
 function refreshProfile() {
@@ -1881,6 +2114,7 @@ function initAuthStatusBadge() {
    INIT — check session on load
    ══════════════════════════════════════════════════════ */
 initAuthStatusBadge();
+initAIStatusBadge();
 checkSession();
 </script>
 </body>
