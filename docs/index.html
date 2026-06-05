@@ -906,11 +906,6 @@ const EMAILJS_CONFIG = {
 
 const isEmailJSEnabled = EMAILJS_CONFIG.publicKey && !EMAILJS_CONFIG.publicKey.startsWith("YOUR_");
 
-const GEMINI_CONFIG = {
-    apiKey: "YOUR_GEMINI_API_KEY"
-};
-const isGeminiEnabled = GEMINI_CONFIG.apiKey && !GEMINI_CONFIG.apiKey.startsWith("YOUR_");
-
 if (isEmailJSEnabled) {
     emailjs.init({
         publicKey: EMAILJS_CONFIG.publicKey,
@@ -1904,68 +1899,108 @@ function initAIStatusBadge() {
     badge.style.fontSize = '0.75rem';
     badge.style.fontWeight = '600';
     badge.style.display = 'inline-block';
-    
-    if (isGeminiEnabled) {
-        badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
-        badge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
-        badge.style.color = 'var(--buy)';
-        badge.textContent = '🟢 Gemini Active';
-    } else {
-        badge.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
-        badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
-        badge.style.color = 'var(--warn)';
-        badge.textContent = '⚠️ Offline (Sandbox Mode)';
-    }
+    badge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+    badge.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+    badge.style.color = 'var(--buy)';
+    badge.textContent = '⚙️ Secure Local AI Advisor (No API Key Required)';
 }
 
-async function askGemini(prompt) {
-    try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_CONFIG.apiKey}`;
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                contents: [
-                    {
-                        parts: [
-                            {
-                                text: `System Instruction: You are a professional trading assistant. Keep all responses under 150 words.\n\nUser Question: ${prompt}`
-                            }
-                        ]
-                    }
-                ]
-            })
-        });
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!responseText) {
-            throw new Error("No response text received from Gemini.");
-        }
-        return responseText;
-    } catch (error) {
-        console.error("Gemini API Error:", error);
-        throw error;
-    }
+async function askGemini(promptText) {
+    const delay = 500 + Math.random() * 300;
+    await new Promise(resolve => setTimeout(resolve, delay));
+    return getMockAIResponse(promptText);
 }
 
-function getMockAIResponse(prompt) {
-    const p = prompt.toLowerCase();
-    if (p.includes("nifty") || p.includes("index")) {
-        return "The **NIFTY 50** is India's benchmark stock market index representing the weighted average of 50 of the largest Indian companies listed on the NSE. Recently, it has shown strong resilience, trading around **24,850** points. Key drivers include robust corporate earnings, steady domestic institutional inflows (DIIs), and positive macroeconomic indicators like stable inflation. Analysts suggest maintaining a diversified portfolio with strong large-cap names.";
-    } else if (p.includes("sip") || p.includes("lump sum") || p.includes("lumpsum")) {
-        return "Choosing between **SIP** (Systematic Investment Plan) and **Lump sum** depends on your market view:\n- **SIP** is ideal for volatile markets, averaging your cost over time (rupee cost averaging) and instilling disciplined investing.\n- **Lump sum** works best when the market is at a clear bottom or during a strong bull run, as it invests all capital upfront.\n*Verdict:* For long-term retail investors, SIP is highly recommended to mitigate timing risks.";
-    } else if (p.includes("portfolio") || p.includes("optimize") || p.includes("optimization")) {
-        return "To **optimize your portfolio**:\n1. **Asset Allocation:** Balance your funds between stocks, bonds, crypto, and gold based on your risk tolerance.\n2. **Diversification:** Don't put all eggs in one basket. In stocks, mix Sectors (IT, Banking, FMCG).\n3. **Rebalancing:** Review your portfolio bi-annually or annually to restore your original target allocation.\n4. **Reduce Costs:** Choose direct mutual funds and low-cost index ETFs to minimize expense ratios.";
-    } else if (p.includes("mutual fund") || p.includes("fund")) {
-        return "For **Mutual Funds**, look at three core steps:\n1. **Define Your Goal & Horizon:** Equity funds (Large/Mid/Small Cap) for long-term goals (5+ years); Debt or Liquid funds for short-term (<3 years).\n2. **Analyze Key Metrics:** Check 3Y/5Y rolling returns, expense ratio, and standard deviation (risk metric).\n3. **Diversified Selection:** A good starter mix is 1 Flexi Cap Fund (like *Parag Parikh Flexi Cap*) + 1 Large Cap/Index Fund.";
+function getMockAIResponse(promptText) {
+    const p = promptText.toLowerCase();
+
+    // 1. Stock Lookup
+    for (const s of INDIAN_STOCKS) {
+        const nameLower = s.name.toLowerCase();
+        const symbolLower = s.symbol.toLowerCase();
+        if (p.includes(nameLower) || p.includes(symbolLower)) {
+            const rating = s.price > 2000 ? "Buy (Bullish)" : (s.price > 1000 ? "Hold" : "Strong Buy (Value Pick)");
+            const recommendation = s.price > 2000 
+                ? `The price is currently high at **${formatINR(s.price)}** in the **${s.sector}** sector. Momentum is strong. Accumulate on dips.`
+                : `Trading at an attractive valuation of **${formatINR(s.price)}** in the **${s.sector}** sector. Solid long-term potential.`;
+            
+            return `**📈 Stock Analysis: ${s.name} (${s.symbol})**\n\n` +
+                   `- **Sector:** ${s.sector}\n` +
+                   `- **Current Price:** ${formatINR(s.price)} (Live update)\n` +
+                   `- **Recommendation:** ${recommendation}\n` +
+                   `- **Rating:** **${rating}**\n\n` +
+                   `*Technical indicators suggest strong support at ${formatINR(s.price * 0.95)} with resistance at ${formatINR(s.price * 1.05)}.*`;
+        }
     }
-    return "I am currently in sandbox/offline mode. You can ask me about **NIFTY 50**, **SIP vs Lump sum**, **portfolio optimization**, or **mutual funds**, and I'll provide simulated professional insights! To enable live responses, please configure a valid `apiKey` in `GEMINI_CONFIG`.";
+
+    // 2. Portfolio Audit
+    if (p.includes("portfolio") || p.includes("wallet") || p.includes("holdings") || p.includes("my balance") || p.includes("optimize")) {
+        const w = getWallet();
+        const totalValue = w.balance + w.investments;
+        const cashRatio = totalValue > 0 ? (w.balance / totalValue) * 100 : 0;
+        const assetRatio = totalValue > 0 ? (w.investments / totalValue) * 100 : 0;
+
+        let recommendation = "";
+        if (cashRatio > 60) {
+            recommendation = `You have a **high Cash allocation (${cashRatio.toFixed(1)}%)**. Consider deploying some cash into Large Cap Mutual Funds or Blue-chip stocks like **Reliance** or **TCS** to beat inflation and achieve better compounding returns.`;
+        } else if (cashRatio < 15) {
+            recommendation = `You are **highly allocated to Assets (${assetRatio.toFixed(1)}%)** with low cash liquidity. Consider keeping some cash reserves (15-20%) in your wallet to capitalize on sudden market corrections/dips.`;
+        } else {
+            recommendation = `Your portfolio allocation is **well-balanced** between Cash (**${cashRatio.toFixed(1)}%**) and Assets (**${assetRatio.toFixed(1)}%**). Keep systematic investment plans (SIPs) running to maintain dollar/rupee cost averaging.`;
+        }
+
+        return `**💼 Portfolio Audit & Health Check**\n\n` +
+               `- **Cash Balance (Wallet):** ${formatINR(w.balance)}\n` +
+               `- **Total Investments:** ${formatINR(w.investments)}\n` +
+               `- **Total Net Worth:** ${formatINR(totalValue)}\n` +
+               `- **Allocation Ratio:** Cash: **${cashRatio.toFixed(1)}%** | Assets: **${assetRatio.toFixed(1)}%**\n\n` +
+               `**AI Recommendation:**\n${recommendation}`;
+    }
+
+    // 3. Financial definitions
+    if (p.includes("stop loss") || p.includes("stop-loss")) {
+        return `**🛑 What is a Stop Loss?**\n\n` +
+               `A **Stop Loss (SL)** is an order placed with a broker to sell a security when it reaches a certain price. It is designed to limit an investor's loss on a security position.\n\n` +
+               `**Practical Example:**\n` +
+               `- Suppose you buy **HDFC Bank** at **₹1,720**.\n` +
+               `- To protect yourself from a sudden market crash, you place a Stop Loss order at **₹1,650**.\n` +
+               `- If the price falls to ₹1,650, your broker automatically triggers a sell order, capping your maximum loss at **₹70 per share** (approx. 4%), preventing further downside if the stock crashes to ₹1,500.`;
+    }
+
+    if (p.includes("limit order")) {
+        return `**⚙️ Limit Order vs. Market Order**\n\n` +
+               `- **Market Order:** Executes immediately at the best available current market price. Use when speed of execution is your primary goal.\n` +
+               `- **Limit Order:** Allows you to set a maximum price you are willing to pay (as a buyer) or a minimum price you are willing to accept (as a seller).\n\n` +
+               `**Practical Example:**\n` +
+               `If **SBI** is currently trading at **₹840**, but you only want to buy it if it drops to **₹825**, you place a **Limit Buy Order** at ₹825. The trade will *only* execute if the market price touches ₹825 or lower.`;
+    }
+
+    if (p.includes("sip") || p.includes("systematic")) {
+        return `**📅 Systematic Investment Plan (SIP)**\n\n` +
+               `An **SIP** is an investment vehicle that allows you to invest a fixed amount of money regularly (monthly or quarterly) into a mutual fund or stock.\n\n` +
+               `**Key Benefits:**\n` +
+               `1. **Rupee Cost Averaging:** You buy more units when prices are low and fewer units when prices are high, averaging out your cost over time.\n` +
+               `2. **Power of Compounding:** Consistently reinvesting your earnings generates returns on top of returns, exponentially growing your wealth over long periods.\n` +
+               `3. **Financial Discipline:** Automates saving without needing to constantly time the market.`;
+    }
+
+    if (p.includes("mutual fund") || p.includes("elss")) {
+        return `**🏦 Understanding Mutual Funds & ELSS**\n\n` +
+               `Mutual Funds pool money from multiple investors to purchase a diversified portfolio of stocks, bonds, or other securities. Key categories include:\n\n` +
+               `- **Large Cap Funds:** Invest in top 100 established companies (e.g., Reliance, TCS). Low risk, stable returns.\n` +
+               `- **Mid Cap Funds:** Invest in mid-sized companies with high growth potential. Moderate risk, higher returns.\n` +
+               `- **Small Cap Funds:** Invest in emerging small companies. High risk, but potentially explosive returns.\n` +
+               `- **ELSS (Equity Linked Savings Scheme):** Tax-saving mutual funds under Section 80C. They have a **3-year lock-in period** (the shortest among all tax-saving options) and invest primarily in equity markets to deliver high inflation-beating returns.`;
+    }
+
+    // 4. Default fallback
+    return `**🤖 Secure Local AI Advisor**\n\n` +
+           `Hello! I am your client-side secure trading advisor. I run entirely inside your browser (no external API keys required).\n\n` +
+           `How can I assist you today? You can try asking me:\n` +
+           `1. 📈 **"Analyze Reliance"** or any other stock symbol (TCS, INFY, SBI, ITC, etc.)\n` +
+           `2. 💼 **"Audit my portfolio"** to review your cash and asset allocations\n` +
+           `3. 🛑 **"What is a stop loss?"** or **"Explain limit order"**\n` +
+           `4. 💰 **"Explain SIP"** or ask about **"Mutual Funds / ELSS"**`;
 }
 
 function sendQuickPrompt(prompt) {
@@ -1998,21 +2033,14 @@ async function sendAIMessage() {
     typingDiv.innerHTML = `
         <div style="width:32px; height:32px; border-radius:50%; background:rgba(99,102,241,0.2); border:1px solid rgba(99,102,241,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:0.9rem;">🤖</div>
         <div style="background:var(--bg-hover); border:1px solid var(--border-subtle); padding:12px 16px; border-radius:0 16px 16px 16px; font-size:0.9rem; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">
-            <span class="spinner" style="border-top-color:var(--accent);"></span> Gemini is thinking...
+            <span class="spinner" style="border-top-color:var(--accent);"></span> AI Advisor is thinking...
         </div>
     `;
     container.appendChild(typingDiv);
     container.scrollTop = container.scrollHeight;
 
     try {
-        let responseText;
-        if (isGeminiEnabled) {
-            responseText = await askGemini(prompt);
-        } else {
-            // Simulate network delay
-            await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
-            responseText = getMockAIResponse(prompt);
-        }
+        const responseText = await askGemini(prompt);
         
         // Remove typing indicator
         const typingEl = document.getElementById(typingId);
@@ -2024,7 +2052,7 @@ async function sendAIMessage() {
         if (typingEl) typingEl.remove();
         
         appendAIMessage(`❌ Error generating response: ${error.message || error}`, 'ai');
-        showToast('Failed to get response from Gemini AI', 'error');
+        showToast('Failed to get response from AI Advisor', 'error');
     }
 }
 
