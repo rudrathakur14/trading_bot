@@ -7,6 +7,11 @@ import argparse
 import sys
 import logging
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 from bot.logging_config import setup_logging
 from bot.client import BinanceClient, BinanceClientError
 from bot.validators import validate_all, ValidationError
